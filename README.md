@@ -6,7 +6,7 @@ This program is a reverse proxy that can optionally restrict access to users bel
 
 * All traffic uses HTTPS
 * Each back-end has its own subdomain
-* Back-ends are only accessed via a trusted network.  **WARNING** Since many services in my use case use self-signed certs, SSL verification is disabled when communicating with proxied services.
+* Back-ends are only accessed via a trusted network.  **WARNING** Since many services in my use case use self-signed certs, **SSL verification is disabled when communicating with proxied services.**
 * Subdomains `health` and `oauth` are reserved
 
 ## Installation
