@@ -66,11 +66,12 @@ func Handler(conf *Config) (http.Handler, error) {
 	router := mux.NewRouter()
 	router.NotFoundHandler = http.HandlerFunc(notFound)
 
-	router.
-		Host(fmt.Sprintf("oauth.%s", conf.Domain)).
-		Path("/authorized").
-		Handler(
-		auth.Handler(store, sessionName, conf.authorizer()))
+	oauthRouter := router.Host(fmt.Sprintf("oauth.%s", conf.Domain)).Subrouter()
+	oauthRouter.Path("/authorized").Handler(auth.Handler(store, sessionName, conf.authorizer()))
+	oauthRouter.Path("/session").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		session, _ := store.Get(r, sessionName)
+		fmt.Fprintf(w, "%v", session.Values)
+	})
 
 	healthRouter := router.Host(fmt.Sprintf("health.%s", conf.Domain)).Subrouter()
 	healthRouter.Path("/check").Handler(health(conf))
