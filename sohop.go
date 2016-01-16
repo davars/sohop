@@ -1,8 +1,11 @@
 package sohop
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"log"
+	"math"
+	"math/big"
 	"net/http"
 	"time"
 
@@ -38,7 +41,12 @@ var (
 )
 
 func sessionID() string {
-	return fmt.Sprintf("_s%d", rand.Uint32())
+	n, err := rand.Int(rand.Reader, big.NewInt(math.MaxInt64))
+	if err != nil {
+		log.Fatal(err)
+	}
+	id := fmt.Sprintf("_s%d", n)
+	return id
 }
 
 func (c *Config) authorizer() auth.Authorizer {
