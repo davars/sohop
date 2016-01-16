@@ -18,7 +18,8 @@ import (
 type Config struct {
 	Domain          string
 	Backends        map[string]backend
-	GithubAPI       oauthApp
+	Github          *auth.GithubAuth
+	Google          *auth.GoogleAuth
 	AuthorizedOrgID int
 }
 
@@ -27,11 +28,6 @@ type backend struct {
 	Auth        bool
 	HealthCheck string
 	WebSocket   string
-}
-
-type oauthApp struct {
-	ClientID     string
-	ClientSecret string
 }
 
 var (
@@ -50,11 +46,16 @@ func sessionID() string {
 }
 
 func (c *Config) authorizer() auth.Authorizer {
-	return auth.GithubAuth{
-		ClientID:     c.GithubAPI.ClientID,
-		ClientSecret: c.GithubAPI.ClientSecret,
-		OrgID:        c.AuthorizedOrgID,
+	if c.Github != nil && c.Google != nil {
+		log.Fatal("can only use one authorizer; please configure either Google or Github authorization")
 	}
+	if c.Github == nil && c.Google == nil {
+		log.Fatal("must define an authorizer; please configure either Google or Github authorization")
+	}
+	if c.Github != nil {
+		return c.Github
+	}
+	return c.Google
 }
 
 func Handler(conf *Config) (http.Handler, error) {

@@ -29,20 +29,20 @@ Usage of sohop:
     	Address to bind HTTPS server (default ":443")
 ```
 
-## Example Config
+## Example Configs
 
 ```
 {
   "Domain": "example.com",
-  "AuthorizedOrgId": 12345678,
-  "GithubApi":{
+  "Github":{
     "ClientID": "12345678",
-    "ClientSecret": "12345678"
+    "ClientSecret": "12345678",
+    "OrgID": 12345678
   },
   "Backends": {
     "intranet": {
       "URL": "http://10.0.0.16:8888",
-      "HealthCheck": "http://10.0.0.16:8888/health",
+      "HealthCheck": "http://10.0.0.16:8888/tree",
       "WebSocket": "ws://10.0.0.16:8888",
       "Auth": true
     },
@@ -54,7 +54,23 @@ Usage of sohop:
     }
   }
 }
+```
 
+Credentials are the same format as can be downloaded from the Google Developers Console.
+See [google.ConfigFromJSON](https://godoc.org/golang.org/x/oauth2/google#ConfigFromJSON) for more info.
+```
+{
+  "Domain": "example.com",
+  "Google":{
+    "Credentials": {"web":{"client_id":"XXXX-yyyyyy.apps.googleusercontent.com","project_id":"example","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://accounts.google.com/o/oauth2/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"zzzzZZzzZZ","redirect_uris":["https://oauth.example.com/authorized"]}},
+    "EmailRegex":"^davars@gmail.com$"
+  },
+  "Backends": {
+
+...
+
+  }
+}
 ```
 
 ## Testing
@@ -65,8 +81,9 @@ Usage of sohop:
 
 - [ ] Docs
 - [ ] Tests
-- [ ] Google Auth (email regex)
+- [x] Google Auth (email regex)
 - [ ] Let's Encrypt provision / renewal
+- [ ] Google Auth (Apps domain)
 - [ ] Google Auth (groups)
 
 ## Contributing ##
