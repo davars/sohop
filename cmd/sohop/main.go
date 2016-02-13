@@ -56,28 +56,21 @@ func newConfig() *sohop.Config {
 
 func main() {
 	conf := newConfig()
-	handler, err := sohop.Handler(conf)
-	check(err)
-	http.Handle("/", ensuringHTTPS(handler))
 	go func() {
-		err := http.ListenAndServeTLS(httpsAddr, certFile, certKey, nil)
+		handler, err := sohop.Handler(conf)
+		check(err)
+		err = http.ListenAndServeTLS(httpsAddr, certFile, certKey, handler)
 		check(err)
 	}()
 	go func() {
-		err := http.ListenAndServe(httpAddr, nil)
+		err := http.ListenAndServe(httpAddr,
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				r.URL.Scheme = "https"
+				r.URL.Host = r.Host + httpsAddr
+				http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
+				return
+			}))
 		check(err)
 	}()
 	select {}
-}
-
-func ensuringHTTPS(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.TLS == nil {
-			r.URL.Scheme = "https"
-			r.URL.Host = r.Host + httpsAddr
-			http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
 }
