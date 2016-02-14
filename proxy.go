@@ -62,6 +62,15 @@ func (c *Config) ProxyHandler() (http.Handler, error) {
 			return
 		}
 		if upstream.WSProxy != nil && wsutil.IsWebSocketRequest(r) {
+			// HACK: EdgeOS treats headers as case-sensitive.  Bypass canonicalization.
+			for k, v := range r.Header {
+				if strings.Contains(k, "Websocket") {
+					fixed := strings.Replace(k, "Websocket", "WebSocket", -1)
+					r.Header[fixed] = v
+					delete(r.Header, k)
+				}
+			}
+
 			upstream.WSProxy.ServeHTTP(w, r)
 			return
 		}
