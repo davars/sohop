@@ -17,13 +17,13 @@ import (
 
 type Config struct {
 	Domain          string
-	Backends        map[string]backend
+	Upstreams       map[string]upstreamSpec
 	Github          *auth.GithubAuth
 	Google          *auth.GoogleAuth
 	AuthorizedOrgID int
 }
 
-type backend struct {
+type upstreamSpec struct {
 	URL         string
 	Auth        bool
 	HealthCheck string

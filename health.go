@@ -31,7 +31,7 @@ func health(conf *Config) http.Handler {
 		var lock sync.Mutex // responses
 		var wg sync.WaitGroup
 
-		for _k, _v := range conf.Backends {
+		for _k, _v := range conf.Upstreams {
 			k := _k
 			v := _v
 

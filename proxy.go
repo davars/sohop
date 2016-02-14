@@ -11,66 +11,75 @@ import (
 	"github.com/yhat/wsutil"
 )
 
-func (c *Config) proxies() (map[string]*httputil.ReverseProxy,
-	map[string]*wsutil.ReverseProxy,
-	error) {
-	// Assume backends are accessible via trusted network
+type upstream struct {
+	HTTPProxy *httputil.ReverseProxy
+	WSProxy   *wsutil.ReverseProxy
+}
+
+func (c *Config) createUpstreams() (map[string]upstream, error) {
+	// Assume upstreams are accessible via trusted network
 	tlsConfig := &tls.Config{InsecureSkipVerify: true}
 	transport := &http.Transport{TLSClientConfig: tlsConfig}
-	proxyMap := make(map[string]*httputil.ReverseProxy)
-	wsProxyMap := make(map[string]*wsutil.ReverseProxy)
+	m := map[string]upstream{}
 
-	for name, backend := range c.Backends {
-		if backend.URL != "" {
-			target, err := url.Parse(backend.URL)
+	for name, spec := range c.Upstreams {
+		upstream := upstream{}
+
+		if spec.URL != "" {
+			target, err := url.Parse(spec.URL)
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
-			proxyMap[name] = httputil.NewSingleHostReverseProxy(target)
-			proxyMap[name].Transport = transport
+			upstream.HTTPProxy = httputil.NewSingleHostReverseProxy(target)
+			upstream.HTTPProxy.Transport = transport
 		}
 
-		if backend.WebSocket != "" {
-			target, err := url.Parse(backend.WebSocket)
+		if spec.WebSocket != "" {
+			target, err := url.Parse(spec.WebSocket)
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
-			wsProxyMap[name] = wsutil.NewSingleHostReverseProxy(target)
+			upstream.WSProxy = wsutil.NewSingleHostReverseProxy(target)
+			upstream.WSProxy.TLSClientConfig = tlsConfig
 		}
+
+		m[name] = upstream
 	}
 
-	return proxyMap, wsProxyMap, nil
+	return m, nil
 }
 
 func (c *Config) ProxyHandler() (http.Handler, error) {
-	backendProxies, webSocketProxies, err := c.proxies()
+	upstreams, err := c.createUpstreams()
 	if err != nil {
 		return nil, err
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		subdomain := mux.Vars(r)["subdomain"]
-		if wsutil.IsWebSocketRequest(r) {
-			if proxy, ok := webSocketProxies[subdomain]; ok {
-				proxy.ServeHTTP(w, r)
-			} else {
-				notFound(w, r)
-			}
+		upstream, ok := upstreams[subdomain]
+		if !ok {
+			notFound(w, r)
+			return
+		}
+		if upstream.WSProxy != nil && wsutil.IsWebSocketRequest(r) {
+			upstream.WSProxy.ServeHTTP(w, r)
 			return
 		}
 
-		if proxy, ok := backendProxies[subdomain]; ok {
-			proxy.ServeHTTP(w, r)
-		} else {
-			notFound(w, r)
+		if upstream.HTTPProxy != nil {
+			upstream.HTTPProxy.ServeHTTP(w, r)
+			return
 		}
+
+		notFound(w, r)
 	}), nil
 }
 
 func requiresAuth(c *Config) mux.MatcherFunc {
 	return func(r *http.Request, rm *mux.RouteMatch) bool {
 		subdomain := strings.Split(r.Host, ".")[0]
-		if backend, ok := c.Backends[subdomain]; ok {
-			return backend.Auth
+		if upstream, ok := c.Upstreams[subdomain]; ok {
+			return upstream.Auth
 		}
 
 		return true
