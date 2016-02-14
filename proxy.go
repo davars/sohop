@@ -1,19 +1,25 @@
 package sohop
 
 import (
+	"bytes"
 	"crypto/tls"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strings"
+	"text/template"
 
 	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
 	"github.com/yhat/wsutil"
 )
 
+type headerTemplate map[string][]*template.Template
+
 type upstream struct {
-	HTTPProxy *httputil.ReverseProxy
-	WSProxy   *wsutil.ReverseProxy
+	HTTPProxy       *httputil.ReverseProxy
+	WSProxy         *wsutil.ReverseProxy
+	headerTemplates headerTemplate
 }
 
 func (c *Config) createUpstreams() (map[string]upstream, error) {
@@ -42,6 +48,14 @@ func (c *Config) createUpstreams() (map[string]upstream, error) {
 			upstream.WSProxy = wsutil.NewSingleHostReverseProxy(target)
 			upstream.WSProxy.TLSClientConfig = tlsConfig
 		}
+		templates := make(headerTemplate, len(spec.Headers))
+		for k, v := range spec.Headers {
+			for _, t := range v {
+				template := template.Must(template.New("").Parse(t))
+				templates[k] = append(templates[k], template)
+			}
+		}
+		upstream.headerTemplates = templates
 
 		m[name] = upstream
 	}
@@ -61,6 +75,23 @@ func (c *Config) ProxyHandler() (http.Handler, error) {
 			notFound(w, r)
 			return
 		}
+
+		if len(upstream.headerTemplates) > 0 {
+			session, _ := store.Get(r, sessionName)
+			for k, vs := range upstream.headerTemplates {
+				r.Header.Del(k)
+				for _, v := range vs {
+					buf := &bytes.Buffer{}
+					err := v.Execute(buf, struct{ Session *sessions.Session }{Session: session})
+					if err != nil {
+						http.Error(w, err.Error(), http.StatusInternalServerError)
+						return
+					}
+					r.Header.Add(k, buf.String())
+				}
+			}
+		}
+
 		if upstream.WSProxy != nil && wsutil.IsWebSocketRequest(r) {
 			// HACK: EdgeOS treats headers as case-sensitive.  Bypass canonicalization.
 			for k, v := range r.Header {

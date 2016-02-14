@@ -28,6 +28,7 @@ type upstreamSpec struct {
 	Auth        bool
 	HealthCheck string
 	WebSocket   string
+	Headers     http.Header
 }
 
 var (
