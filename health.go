@@ -8,13 +8,16 @@ import (
 	"time"
 )
 
-var healthClient = createInsecureClient()
+var healthClient = createHealthClient()
 
-func createInsecureClient() *http.Client {
+func createHealthClient() *http.Client {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
-	client := &http.Client{Transport: tr}
+	client := &http.Client{
+		Transport: tr,
+		Timeout:   5 * time.Second,
+	}
 	return client
 }
 
