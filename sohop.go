@@ -23,6 +23,47 @@ type Config struct {
 	AuthorizedOrgID int
 }
 
+type Server struct {
+	Config    *Config
+	CertFile  string
+	CertKey   string
+	HTTPAddr  string
+	HTTPSAddr string
+
+	proxy http.Handler
+}
+
+func check(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (s Server) Run() {
+	var err error
+
+	store.Options.HttpOnly = true
+	store.Options.Secure = true
+	store.Options.Domain = s.Config.Domain
+	store.Options.MaxAge = int(sessionAge / time.Second)
+
+	go func() {
+		err = http.ListenAndServeTLS(s.HTTPSAddr, s.CertFile, s.CertKey, s.handler())
+		check(err)
+	}()
+	go func() {
+		err := http.ListenAndServe(s.HTTPAddr,
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				r.URL.Scheme = "https"
+				r.URL.Host = r.Host + s.HTTPSAddr
+				http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
+				return
+			}))
+		check(err)
+	}()
+	select {}
+}
+
 type upstreamSpec struct {
 	URL         string
 	Auth        bool
@@ -59,34 +100,28 @@ func (c *Config) authorizer() auth.Authorizer {
 	return c.Google
 }
 
-func Handler(conf *Config) (http.Handler, error) {
-	store.Options.HttpOnly = true
-	store.Options.Secure = true
-	store.Options.Domain = conf.Domain
-	store.Options.MaxAge = int(sessionAge / time.Second)
-
+func (s Server) handler() http.Handler {
 	router := mux.NewRouter()
 	router.NotFoundHandler = http.HandlerFunc(notFound)
 
+	conf := s.Config
 	oauthRouter := router.Host(fmt.Sprintf("oauth.%s", conf.Domain)).Subrouter()
 	oauthRouter.Path("/authorized").Handler(auth.Handler(store, sessionName, conf.authorizer()))
+	authenticating := auth.Middleware(store, sessionName, conf.authorizer())
+
+	// TODO: switch to JWT so that this isn't necessary
 	oauthRouter.Path("/session").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, _ := store.Get(r, sessionName)
 		fmt.Fprintf(w, "%v", session.Values)
 	})
 
 	healthRouter := router.Host(fmt.Sprintf("health.%s", conf.Domain)).Subrouter()
-	healthRouter.Path("/check").Handler(health(conf))
+	healthRouter.Path("/check").Handler(s.HealthHandler())
 
 	proxyRouter := router.Host(fmt.Sprintf("{subdomain:[a-z]+}.%s", conf.Domain)).Subrouter()
-	authentication := auth.Middleware(store, sessionName, conf.authorizer())
-	proxy, err := conf.ProxyHandler()
-	if err != nil {
-		return nil, err
-	}
-
-	proxyRouter.MatcherFunc(requiresAuth(conf)).Handler(authentication(proxy))
+	proxy := s.ProxyHandler()
+	proxyRouter.MatcherFunc(requiresAuth(conf)).Handler(authenticating(proxy))
 	proxyRouter.PathPrefix("/").Handler(proxy)
 
-	return logging(router), nil
+	return logging(router)
 }

@@ -5,7 +5,6 @@ import (
 	"flag"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 
 	"bitbucket.org/davars/sohop"
@@ -55,22 +54,11 @@ func newConfig() *sohop.Config {
 }
 
 func main() {
-	conf := newConfig()
-	go func() {
-		handler, err := sohop.Handler(conf)
-		check(err)
-		err = http.ListenAndServeTLS(httpsAddr, certFile, certKey, handler)
-		check(err)
-	}()
-	go func() {
-		err := http.ListenAndServe(httpAddr,
-			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				r.URL.Scheme = "https"
-				r.URL.Host = r.Host + httpsAddr
-				http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
-				return
-			}))
-		check(err)
-	}()
-	select {}
+	sohop.Server{
+		Config:    newConfig(),
+		CertFile:  certFile,
+		CertKey:   certKey,
+		HTTPAddr:  httpAddr,
+		HTTPSAddr: httpsAddr,
+	}.Run()
 }

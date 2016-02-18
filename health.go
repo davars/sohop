@@ -23,7 +23,7 @@ type healthStatus struct {
 	LatencyMS time.Duration `json:"latency_ms"`
 }
 
-func health(conf *Config) http.Handler {
+func (s Server) HealthHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		allOk := true
 		responses := make(map[string]healthStatus)
@@ -31,7 +31,7 @@ func health(conf *Config) http.Handler {
 		var lock sync.Mutex // responses
 		var wg sync.WaitGroup
 
-		for _k, _v := range conf.Upstreams {
+		for _k, _v := range s.Config.Upstreams {
 			k := _k
 			v := _v
 

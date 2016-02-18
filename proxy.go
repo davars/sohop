@@ -63,11 +63,10 @@ func (c *Config) createUpstreams() (map[string]upstream, error) {
 	return m, nil
 }
 
-func (c *Config) ProxyHandler() (http.Handler, error) {
-	upstreams, err := c.createUpstreams()
-	if err != nil {
-		return nil, err
-	}
+func (s Server) ProxyHandler() http.Handler {
+	upstreams, err := s.Config.createUpstreams()
+	check(err)
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		subdomain := mux.Vars(r)["subdomain"]
 		upstream, ok := upstreams[subdomain]
@@ -112,7 +111,7 @@ func (c *Config) ProxyHandler() (http.Handler, error) {
 		}
 
 		notFound(w, r)
-	}), nil
+	})
 }
 
 func requiresAuth(c *Config) mux.MatcherFunc {
