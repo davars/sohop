@@ -3,12 +3,15 @@ package sohop
 import (
 	"crypto/tls"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"sync"
 	"time"
 )
 
 var healthClient = createHealthClient()
+
+const certWarning = 72 * time.Hour
 
 func createHealthClient() *http.Client {
 	tr := &http.Transport{
@@ -27,6 +30,10 @@ type healthStatus struct {
 }
 
 func (s Server) HealthHandler() http.Handler {
+	data, err := ioutil.ReadFile(s.CertFile)
+	check(err)
+	notBefore, notAfter, err := CertValidity(data)
+	check(err)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		allOk := true
 		responses := make(map[string]healthStatus)
@@ -67,7 +74,34 @@ func (s Server) HealthHandler() http.Handler {
 
 		wg.Wait()
 
-		res, err := json.MarshalIndent(responses, "", "  ")
+		certResponse := map[string]interface{}{
+			"expires_at": notAfter,
+		}
+		now := time.Now()
+		if !notBefore.Before(now) {
+			certResponse["error"] = "not yet valid"
+			certResponse["valid_at"] = notBefore
+			certResponse["ok"] = false
+		} else if !notAfter.After(now) {
+			certResponse["error"] = "expired"
+			certResponse["ok"] = false
+		} else if !notAfter.Add(-1 * certWarning).After(now) {
+			certResponse["expires_in"] = notAfter.Sub(now).String()
+			certResponse["error"] = "expires soon"
+			certResponse["ok"] = false
+		} else {
+			certResponse["ok"] = true
+		}
+
+		allOk = allOk && certResponse["ok"].(bool)
+
+		res, err := json.MarshalIndent(struct {
+			Upstreams map[string]healthStatus `json:"upstreams"`
+			Cert      map[string]interface{}  `json:"cert"`
+		}{
+			Upstreams: responses,
+			Cert:      certResponse,
+		}, "", "  ")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
