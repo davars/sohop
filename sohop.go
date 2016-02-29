@@ -118,7 +118,7 @@ func (s Server) handler() http.Handler {
 	healthRouter := router.Host(fmt.Sprintf("health.%s", conf.Domain)).Subrouter()
 	healthRouter.Path("/check").Handler(s.HealthHandler())
 
-	proxyRouter := router.Host(fmt.Sprintf("{subdomain:[a-z]+}.%s", conf.Domain)).Subrouter()
+	proxyRouter := router.Host(fmt.Sprintf("{subdomain:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?}.%s", conf.Domain)).Subrouter()
 	proxy := s.ProxyHandler()
 	proxyRouter.MatcherFunc(requiresAuth(conf)).Handler(authenticating(proxy))
 	proxyRouter.PathPrefix("/").Handler(proxy)
