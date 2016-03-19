@@ -7,7 +7,7 @@ specified regex).  It also provides a health check endpoint that reports the rea
 I use it to expose erstwhile intranet apps to the public internet while continuing to restrict access, and without
 having to configure authentication / authorization in the intranet apps themselves.  They are installed as if they're
 still behind a firewall, and sohop handles auth / auth.  This is a configuration that is tilted very much towards the 
-usability end of the usability / security spectrum and may not be appropriate for your use-case.
+usability end of the usability / security spectrum and may not be appropriate for your use case.
 
 ## Assumptions
 
