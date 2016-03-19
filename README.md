@@ -4,16 +4,14 @@ This program is a reverse proxy that can optionally restrict access to users aut
 supports authorizing members of a specified Github organization, or users whose Google account email matches a
 specified regex).  It also provides a health check endpoint that reports the reachability of the upstream services.
 
-## Rationale
-
-There seems to be a trend where all config file formats trend towards Turing-completeness over time.  Life is too short for
-understanding the directives of yet another arbitrary config file format, and still not being free from having to
-patch the software anyway when it falls just short of your needs.  I'd rather have all of Go available to me when
-'configuring' my web server so that I can perform truly arbitrary processing on requests.
+I use it to expose erstwhile intranet apps to the public internet while continuing to restrict access, and without
+having to configure authentication / authorization in the intranet apps themselves.  They are installed as if they're
+still behind a firewall, and sohop handles auth / auth.  This is a configuration that is tilted very much towards the 
+usability end of the usability / security spectrum and may not be appropriate for your use-case.
 
 ## Assumptions
 
-* All outgoing traffic uses HTTPS (HTTP requests are redirected to the HTTPS equivalent)
+* All outgoing traffic uses HTTPS (HTTP requests are redirected to the HTTPS equivalent URL)
 * Each upstream is accessed on a subdomain of the same domain (no path rewriting)
 * Upstreams are only accessed via a trusted network.  **WARNING** Since many services in my use case use self-signed
 certs, **SSL verification is disabled when communicating with proxied services.**
@@ -158,6 +156,13 @@ go test ./...
 - [ ] Let's Encrypt provision / renewal
 - [ ] Google Auth (Apps domain) (needs advocate)
 - [ ] Google Auth (groups) (needs advocate)
+
+## Rant
+
+There seems to be a trend where all config file formats trend towards Turing-completeness over time.  Life is too short for
+understanding the directives of yet another arbitrary config file format, and still not being free from having to
+patch the software anyway when it falls just short of your needs.  I'd rather have all of Go available to me when
+'configuring' my web server so that I can perform truly arbitrary processing on requests.
 
 ## Contributing ##
 
