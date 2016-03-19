@@ -98,39 +98,50 @@ Usage of sohop:
 
 ### Config Definitions
 
-<dl>
-  <dt>Domain</dt>
-  <dd>The domain to which the subdomains belong.  Also used as the domain for the session cookie.</dd>
-  <dt>CookieName</dt>
-  <dd>(optional) Name of the session cookie.  If not set, a random name will be generated on start-up.</dd>
-  <dt>CookieSecret</dt>
-  <dd>(optional) Secret key used to authenticate session cookies. Should be a hex-encoded string 128 characters in length (64 byte key).  If not set, a random key will be generated on start-up.  Run <code>openssl rand -hex 64</code> to generate a key.</dd>
-  <dt>Github</dt>
-  <dd>An object, configures Github authentication.  Members are defined below.</dd>
-  <dt>Github.ClientID / Github.ClientSecret</dt>
-  <dd>You'll need to create an application to use the Github API for authentication.  Read https://developer.github.com/guides/basics-of-authentication/ to get an overview for how this works.</dd>
-  <dt>Github.OrgID</dt>
-  <dd>ID of the org to allow access. Run <code>curl https://api.github.com/orgs/:org</code> to get the id.</dd>
-  <dt>Google</dt>
-  <dd>An object, configures Google email regex authentication.  Members are defined below.</dd>
-  <dt>Google.Credentials</dt>
-  <dd>An object in the same format as can be downloaded from the Google Developers Console.
-  See [google.ConfigFromJSON](https://godoc.org/golang.org/x/oauth2/google#ConfigFromJSON) for more info.</dd>
-  <dt>Google.EmailRegex</dt>
-  <dd>Allow users whose email matches the regex access to authenticated upstream servers.</dd>
-  <dt>Upstreams</dt>
-  <dd>An array of configurations for upstream servers.  Keys are the subdomain to proxy to the configured server.  Values are objects whose members are defined below.</dd>
-  <dt>Upstreams.URL</dt>
-  <dd>The URL of the upstream server.</dd>
-  <dt>Upstreams.HealthCheck</dt>
-  <dd>(optional) URL to use as a health check, if different from Upstreams.URL (for example if Upstreams.URL returns a 302 response).  Should return a 200 response if the upstream is healthy.</dd>
-  <dt>Upstreams.WebSocket</dt>
-  <dd>(optional) If provided, sohop will also proxy WebSocket connections to this URL.</dd>
-  <dt>Upstreams.Auth</dt>
-  <dd>(default: false) Require authentication for this upstream.</dd>
-  <dt>Upstreams.Headers</dt>
-  <dd>(optional) A map of headers to explicitly set on the upstream request.  Can be a template, evaluated with the current session available as <code>.Session</code></dd>
-</dl>
+**Domain**
+: The domain to which the subdomains belong.  Also used as the domain for the session cookie.
+
+**CookieName**
+: (optional) Name of the session cookie.  If not set, a random name will be generated on start-up.
+
+**CookieSecret**
+: (optional) Secret key used to authenticate session cookies. Should be a hex-encoded string 128 characters in length (64 byte key).  If not set, a random key will be generated on start-up.  Run `openssl rand -hex 64` to generate a key.
+
+**Github**
+: An object, configures Github authentication.  Members are defined below.
+
+**Github.ClientID** / **Github.ClientSecret**
+: You'll need to create an application to use the Github API for authentication.  Read https://developer.github.com/guides/basics-of-authentication/ to get an overview for how this works.
+
+**Github.OrgID**
+: ID of the org to allow access. Run `curl https://api.github.com/orgs/:org` to get the id.
+
+**Google**
+: An object, configures Google email regex authentication.  Members are defined below.
+
+**Google.Credentials**
+: An object in the same format as can be downloaded from the Google Developers Console.  See [google.ConfigFromJSON](https://godoc.org/golang.org/x/oauth2/google#ConfigFromJSON) for more info.
+
+**Google.EmailRegex**
+: Allow users whose email matches the regex access to authenticated upstream servers.
+
+**Upstreams**
+: An array of configurations for upstream servers.  Keys are the subdomain to proxy to the configured server.  Values are objects whose members are defined below.
+
+**Upstreams.URL**
+: The URL of the upstream server.
+
+**Upstreams.HealthCheck**
+: (optional) URL to use as a health check, if different from Upstreams.URL (for example if Upstreams.URL returns a 302 response).  Should return a 200 response if the upstream is healthy.
+
+**Upstreams.WebSocket**
+: (optional) If provided, sohop will also proxy WebSocket connections to this URL.
+
+**Upstreams.Auth**
+: (default: false) Require authentication for this upstream.
+
+**Upstreams.Headers**
+: (optional) A map of headers to explicitly set on the upstream request.  Can be a template, evaluated with the current session available as `.Session`
 
 
 ## Testing
