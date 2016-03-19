@@ -123,7 +123,7 @@ Usage of sohop:
 : An object in the same format as can be downloaded from the Google Developers Console.  See [google.ConfigFromJSON](https://godoc.org/golang.org/x/oauth2/google#ConfigFromJSON) for more info.
 
 **Google.EmailRegex**
-: Allow users whose email matches the regex access to authenticated upstream servers.
+: Allow users whose email matches the regex access to authenticated upstream servers.  Be careful, and keep it simple.
 
 **Upstreams**
 : An array of configurations for upstream servers.  Keys are the subdomain to proxy to the configured server.  Values are objects whose members are defined below.
