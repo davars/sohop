@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"bitbucket.org/davars/sohop/store"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 	"golang.org/x/oauth2"
@@ -89,9 +90,9 @@ func (s *authState) authorize(w http.ResponseWriter, r *http.Request) {
 
 // Handler returns an http.Handler that implements whatever authorization steps are defined by the Authorizer
 // (typically exchanging the OAuth2 code for an access token and using the token to identify the user).
-func Handler(store sessions.Store, sessionName string, auth Authorizer) http.Handler {
+func Handler(store store.Namer, auth Authorizer) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, _ := store.Get(r, sessionName)
+		session, _ := store.Get(r, store.Name())
 		state := &authState{session: session, auth: auth}
 		state.authorize(w, r)
 	})
@@ -99,10 +100,10 @@ func Handler(store sessions.Store, sessionName string, auth Authorizer) http.Han
 
 // Middleware returns a middleware that checks if the requeset has been authorized.  If not, it generates a redirect
 // to the configured Authorizer login URL.
-func Middleware(store sessions.Store, sessionName string, auth Authorizer) func(http.Handler) http.Handler {
+func Middleware(store store.Namer, auth Authorizer) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			session, _ := store.Get(r, sessionName)
+			session, _ := store.Get(r, store.Name())
 			if auth, ok := session.Values[authorizedKey].(bool); auth && ok {
 				next.ServeHTTP(w, r)
 				return

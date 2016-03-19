@@ -76,7 +76,7 @@ func (s Server) ProxyHandler() http.Handler {
 		}
 
 		if len(upstream.headerTemplates) > 0 {
-			session, _ := store.Get(r, sessionName)
+			session, _ := s.store.Get(r, s.store.Name())
 			for k, vs := range upstream.headerTemplates {
 				r.Header.Del(k)
 				for _, v := range vs {

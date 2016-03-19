@@ -2,17 +2,17 @@ package sohop
 
 import (
 	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"math"
 	"math/big"
 	"net/http"
-	"time"
 
 	"bitbucket.org/davars/sohop/auth"
+	"bitbucket.org/davars/sohop/store"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/securecookie"
-	"github.com/gorilla/sessions"
 )
 
 type Config struct {
@@ -21,6 +21,8 @@ type Config struct {
 	Github          *auth.GithubAuth
 	Google          *auth.GoogleAuth
 	AuthorizedOrgID int
+	CookieName      string
+	CookieSecret    string
 }
 
 type Server struct {
@@ -31,6 +33,7 @@ type Server struct {
 	HTTPSAddr string
 
 	proxy http.Handler
+	store store.Namer
 }
 
 func check(err error) {
@@ -42,10 +45,8 @@ func check(err error) {
 func (s Server) Run() {
 	var err error
 
-	store.Options.HttpOnly = true
-	store.Options.Secure = true
-	store.Options.Domain = s.Config.Domain
-	store.Options.MaxAge = int(sessionAge / time.Second)
+	s.store, err = s.Config.namer()
+	check(err)
 
 	go func() {
 		err = http.ListenAndServeTLS(s.HTTPSAddr, s.CertFile, s.CertKey, s.handler())
@@ -72,19 +73,18 @@ type upstreamSpec struct {
 	Headers     http.Header
 }
 
-var (
-	store       = sessions.NewCookieStore(securecookie.GenerateRandomKey(64))
-	sessionName = sessionID()
-	sessionAge  = 24 * time.Hour
-)
-
-func sessionID() string {
-	n, err := rand.Int(rand.Reader, big.NewInt(math.MaxInt64))
-	if err != nil {
-		log.Fatal(err)
+func (c *Config) namer() (store.Namer, error) {
+	if c.CookieName == "" {
+		n, err := rand.Int(rand.Reader, big.NewInt(math.MaxInt64))
+		if err != nil {
+			log.Fatal(err)
+		}
+		c.CookieName = fmt.Sprintf("_s%d", n)
 	}
-	id := fmt.Sprintf("_s%d", n)
-	return id
+	if c.CookieSecret == "" {
+		c.CookieSecret = hex.EncodeToString(securecookie.GenerateRandomKey(64))
+	}
+	return store.New(c.CookieName, c.CookieSecret, c.Domain)
 }
 
 func (c *Config) authorizer() auth.Authorizer {
@@ -106,12 +106,12 @@ func (s Server) handler() http.Handler {
 
 	conf := s.Config
 	oauthRouter := router.Host(fmt.Sprintf("oauth.%s", conf.Domain)).Subrouter()
-	oauthRouter.Path("/authorized").Handler(auth.Handler(store, sessionName, conf.authorizer()))
-	authenticating := auth.Middleware(store, sessionName, conf.authorizer())
+	oauthRouter.Path("/authorized").Handler(auth.Handler(s.store, conf.authorizer()))
+	authenticating := auth.Middleware(s.store, conf.authorizer())
 
 	// TODO: switch to JWT so that this isn't necessary
 	oauthRouter.Path("/session").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, _ := store.Get(r, sessionName)
+		session, _ := s.store.Get(r, s.store.Name())
 		fmt.Fprintf(w, "%v", session.Values)
 	})
 
