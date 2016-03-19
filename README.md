@@ -18,9 +18,9 @@ patch the software anyway when it falls just short of your needs.  I'd rather ha
 * Upstreams are only accessed via a trusted network.  **WARNING** Since many services in my use case use self-signed
 certs, **SSL verification is disabled when communicating with proxied services.**
 * Subdomains `health` and `oauth` are reserved
-  * `health.<domain>/check` provides a health check endpoint for all proxied services.  
-  * `oauth.<domain>/authorize` is used as the oauth callback.
-  * `oauth.<domain>/session` shows the user the values in their session.
+    * `health.<domain>/check` provides a health check endpoint for all proxied services.  
+    * `oauth.<domain>/authorize` is used as the oauth callback.
+    * `oauth.<domain>/session` shows the user the values in their session.
 
 ## Features
 
