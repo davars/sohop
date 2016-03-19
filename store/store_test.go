@@ -35,7 +35,7 @@ func TestNew(t *testing.T) {
 		{
 			name:   "foo",
 			domain: "foo",
-			secret: "27e21c8d866594bd446c4a509d890ce2f59dcb26d89751b77ca236e5be3e0d7c26532a60e1efd4f7b924e363d64e7a44a56dd57d84cf34eb7f0db0e19889f5",
+			secret: "not long enough or hex-encoded",
 			err:    "Session store secret should be a 128-character hex-encoded string.",
 		},
 		{
