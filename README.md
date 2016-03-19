@@ -111,7 +111,7 @@ Usage of sohop:
 : An object, configures Github authentication.  Members are defined below.
 
 **Github.ClientID** / **Github.ClientSecret**
-: You'll need to create an application to use the Github API for authentication.  Read https://developer.github.com/guides/basics-of-authentication/ to get an overview for how this works.
+: You'll need to create an application to use the Github API for authentication.  Read Github's [Basics of Authentication](https://developer.github.com/guides/basics-of-authentication/) to get an overview for how this works.
 
 **Github.OrgID**
 : ID of the org to allow access. Run `curl https://api.github.com/orgs/:org` to get the id.
