@@ -35,10 +35,6 @@ certs, **SSL verification is disabled when communicating with proxied services.*
 
 ```
 Usage of sohop:
-  -certFile string
-    	Server certificate (default "cert.pem")
-  -certKey string
-    	Server certificate private key (default "key.pem")
   -config string
     	Config file (default "config.json")
   -httpAddr string
@@ -52,12 +48,18 @@ Usage of sohop:
 ```
 {
   "Domain": "example.com",
-  "CookieName": "exampleauth",
-  "CookieSecret": "27e21c8d866594bd446c4a509d890ce2f59dcb26d89751b77ca236e5be3e0d7c26532a60e1ed9fd4f7b924e363d64e7a44a56dd57d84cf34eb7f0db0e19889f5",
+  "Cookie": {
+    "Name": "exampleauth",
+    "Secret": "27e21c8d866594bd446c4a509d890ce2f59dcb26d89751b77ca236e5be3e0d7c26532a60e1ed9fd4f7b924e363d64e7a44a56dd57d84cf34eb7f0db0e19889f5"
+  },
   "Github":{
     "ClientID": "12345678",
     "ClientSecret": "12345678",
     "OrgID": 12345678
+  },
+  "TLS": {
+    "CertFile": "cert.pem",
+    "CertKey": "key.pem"
   },
   "Upstreams": {
     "intranet": {
@@ -99,10 +101,13 @@ Usage of sohop:
 **Domain**
 : The domain to which the subdomains belong.  Also used as the domain for the session cookie.
 
-**CookieName**
+**Cookie**
+: (optional) An object, configures the session cookie store.  Members are defined below.
+
+**Cookie.Name**
 : (optional) Name of the session cookie.  If not set, a random name will be generated on start-up.
 
-**CookieSecret**
+**Cookie.Secret**
 : (optional) Secret key used to authenticate session cookies. Should be a hex-encoded string 128 characters in length (64 byte key).  If not set, a random key will be generated on start-up.  Run `openssl rand -hex 64` to generate a key.
 
 **Github**
@@ -122,6 +127,15 @@ Usage of sohop:
 
 **Google.EmailRegex**
 : Allow users whose email matches the regex access to authenticated upstream servers.  Be careful, and keep it simple.
+
+**TLS**
+: An object, specifies the TLS configuration for the server.  Memebrs are defined below.
+
+**TLS.CertFile**
+: Path to the PEM-encoded server certificate.
+
+**TLS.CertKey**
+: Path to the unencrypted PEM-encoded private key for the server certificate.
 
 **Upstreams**
 : An array of configurations for upstream servers.  Keys are the subdomain to proxy to the configured server.  Values are objects whose members are defined below.

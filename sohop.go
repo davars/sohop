@@ -8,6 +8,7 @@ import (
 	"math"
 	"math/big"
 	"net/http"
+	"os"
 
 	"bitbucket.org/davars/sohop/auth"
 	"bitbucket.org/davars/sohop/store"
@@ -21,14 +22,22 @@ type Config struct {
 	Github          *auth.GithubAuth
 	Google          *auth.GoogleAuth
 	AuthorizedOrgID int
-	CookieName      string
-	CookieSecret    string
+	Cookie          CookieConfig
+	TLS             TLSConfig
+}
+
+type CookieConfig struct {
+	Name   string
+	Secret string
+}
+
+type TLSConfig struct {
+	CertFile string
+	CertKey  string
 }
 
 type Server struct {
 	Config    *Config
-	CertFile  string
-	CertKey   string
 	HTTPAddr  string
 	HTTPSAddr string
 
@@ -47,9 +56,10 @@ func (s Server) Run() {
 
 	s.store, err = s.Config.namer()
 	check(err)
+	s.Config.checkTLS()
 
 	go func() {
-		err = http.ListenAndServeTLS(s.HTTPSAddr, s.CertFile, s.CertKey, s.handler())
+		err = http.ListenAndServeTLS(s.HTTPSAddr, s.Config.TLS.CertFile, s.Config.TLS.CertKey, s.handler())
 		check(err)
 	}()
 	go func() {
@@ -74,17 +84,26 @@ type upstreamSpec struct {
 }
 
 func (c *Config) namer() (store.Namer, error) {
-	if c.CookieName == "" {
+	if c.Cookie.Name == "" {
 		n, err := rand.Int(rand.Reader, big.NewInt(math.MaxInt64))
 		if err != nil {
 			log.Fatal(err)
 		}
-		c.CookieName = fmt.Sprintf("_s%d", n)
+		c.Cookie.Name = fmt.Sprintf("_s%d", n)
 	}
-	if c.CookieSecret == "" {
-		c.CookieSecret = hex.EncodeToString(securecookie.GenerateRandomKey(64))
+	if c.Cookie.Secret == "" {
+		c.Cookie.Secret = hex.EncodeToString(securecookie.GenerateRandomKey(64))
 	}
-	return store.New(c.CookieName, c.CookieSecret, c.Domain)
+	return store.New(c.Cookie.Name, c.Cookie.Secret, c.Domain)
+}
+
+func (c *Config) checkTLS() {
+	if _, err := os.Stat(c.TLS.CertFile); err != nil {
+		log.Fatalf("cannot find TLS.CertFile: %v", err)
+	}
+	if _, err := os.Stat(c.TLS.CertKey); err != nil {
+		log.Fatalf("cannot find TLS.CertKey: %v", err)
+	}
 }
 
 func (c *Config) authorizer() auth.Authorizer {

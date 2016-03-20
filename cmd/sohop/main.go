@@ -14,8 +14,9 @@ var (
 	configPath string
 	httpAddr   string
 	httpsAddr  string
-	certFile   string
-	certKey    string
+
+	certFile string
+	certKey  string
 )
 
 func check(err error) {
@@ -25,8 +26,8 @@ func check(err error) {
 }
 
 func checkFile(name string) {
-	if _, err := os.Stat(name); err != nil {
-		log.Print(err)
+	if name != "" {
+		log.Printf("deprecated option %q provided", name)
 		flag.Usage()
 		os.Exit(1)
 	}
@@ -36,8 +37,8 @@ func newConfig() *sohop.Config {
 	flag.StringVar(&configPath, "config", "config.json", "Config file")
 	flag.StringVar(&httpAddr, "httpAddr", ":80", "Address to bind HTTP server")
 	flag.StringVar(&httpsAddr, "httpsAddr", ":443", "Address to bind HTTPS server")
-	flag.StringVar(&certFile, "certFile", "cert.pem", "Server certificate")
-	flag.StringVar(&certKey, "certKey", "key.pem", "Server certificate private key")
+	flag.StringVar(&certFile, "certFile", "", "(deprecated) Now set in config file.  Originally, server certificate.  ")
+	flag.StringVar(&certKey, "certKey", "", "(deprecated) Now set in config file.  Originally, server certificate private key. ")
 	flag.Parse()
 
 	checkFile(certFile)
@@ -56,8 +57,6 @@ func newConfig() *sohop.Config {
 func main() {
 	sohop.Server{
 		Config:    newConfig(),
-		CertFile:  certFile,
-		CertKey:   certKey,
 		HTTPAddr:  httpAddr,
 		HTTPSAddr: httpsAddr,
 	}.Run()

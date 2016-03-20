@@ -30,7 +30,7 @@ type healthStatus struct {
 }
 
 func (s Server) HealthHandler() http.Handler {
-	data, err := ioutil.ReadFile(s.CertFile)
+	data, err := ioutil.ReadFile(s.Config.TLS.CertFile)
 	check(err)
 	notBefore, notAfter, err := CertValidity(data)
 	check(err)
