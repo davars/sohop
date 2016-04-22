@@ -2,11 +2,16 @@ package auth
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 	githubauth "golang.org/x/oauth2/github"
 )
+
+func init() {
+	registeredAuthorizers["github-org"] = reflect.TypeOf(GithubAuth{})
+}
 
 type GithubAuth struct {
 	ClientID     string

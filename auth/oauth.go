@@ -2,9 +2,11 @@ package auth
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 
 	"bitbucket.org/davars/sohop/store"
 	"github.com/gorilla/securecookie"
@@ -12,9 +14,29 @@ import (
 	"golang.org/x/oauth2"
 )
 
+var registeredAuthorizers = make(map[string]reflect.Type)
+
+// An Authorizer can be used
 type Authorizer interface {
 	OAuthConfig() *oauth2.Config
 	Authorize(code string) (string, error)
+}
+
+// An AuthConfig can be used to create a new Authorizer
+type AuthConfig struct {
+	Type   string
+	Config json.RawMessage
+}
+
+// NewAuthorizer returns an Authorizer for the given AuthConfig
+func NewAuthorizer(ac AuthConfig) (Authorizer, error) {
+	configType, ok := registeredAuthorizers[ac.Type]
+	if !ok {
+		return nil, fmt.Errorf("unknown authorizer type %q", ac.Type)
+	}
+	config := reflect.New(configType).Interface().(Authorizer)
+	err := json.Unmarshal(ac.Config, &config)
+	return config, err
 }
 
 const (

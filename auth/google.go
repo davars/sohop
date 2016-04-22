@@ -4,12 +4,17 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strings"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
+
+func init() {
+	registeredAuthorizers["gmail-regex"] = reflect.TypeOf(GoogleAuth{})
+}
 
 type GoogleAuth struct {
 	config     *oauth2.Config
