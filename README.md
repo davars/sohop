@@ -51,11 +51,14 @@ Usage of sohop:
   "Cookie": {
     "Name": "exampleauth",
     "Secret": "27e21c8d866594bd446c4a509d890ce2f59dcb26d89751b77ca236e5be3e0d7c26532a60e1ed9fd4f7b924e363d64e7a44a56dd57d84cf34eb7f0db0e19889f5"
-  },
-  "Github":{
-    "ClientID": "12345678",
-    "ClientSecret": "12345678",
-    "OrgID": 12345678
+  },  
+  "Auth" : {
+    "Type": "github-org",
+    "Config": {
+	  "ClientID": "12345678",
+	  "ClientSecret": "12345678",
+	  "OrgID": 12345678
+	}
   },
   "TLS": {
     "CertFile": "cert.pem",
@@ -82,10 +85,13 @@ Usage of sohop:
 
 ```
 {
-  "Domain": "example.com",
-  "Google":{
-    "Credentials": {"web":{"client_id":"XXXX-yyyyyy.apps.googleusercontent.com","project_id":"example","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://accounts.google.com/o/oauth2/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"zzzzZZzzZZ","redirect_uris":["https://oauth.example.com/authorized"]}},
-    "EmailRegex":"^davars@gmail.com$"
+  "Domain": "example.com",    
+  "Auth" : {
+    "Type": "gmail-regex",
+    "Config": {
+	  "Credentials": {"web":{"client_id":"XXXX-yyyyyy.apps.googleusercontent.com","project_id":"example","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://accounts.google.com/o/oauth2/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"zzzzZZzzZZ","redirect_uris":["https://oauth.example.com/authorized"]}},
+	  "EmailRegex":"^davars@gmail.com$"
+	}
   },
   "Upstreams": {
 
@@ -110,22 +116,25 @@ Usage of sohop:
 **Cookie.Secret**
 : (optional) Secret key used to authenticate session cookies. Should be a hex-encoded string 128 characters in length (64 byte key).  If not set, a random key will be generated on start-up.  Run `openssl rand -hex 64` to generate a key.
 
-**Github**
-: An object, configures Github authentication.  Members are defined below.
+**Auth**
+: An object, configures authentication.
 
-**Github.ClientID** / **Github.ClientSecret**
+**Auth.Type**
+: Supported types are: github-org, google-regex
+
+**Auth.Config**
+: The structure of this value varies depending on the auth type.
+
+**[github-org] Auth.Config.ClientID** / **Auth.Config.ClientSecret**
 : You'll need to create an application to use the Github API for authentication.  Read Github's [Basics of Authentication](https://developer.github.com/guides/basics-of-authentication/) to get an overview for how this works.
 
-**Github.OrgID**
+**[github-org] Auth.Config.OrgID**
 : ID of the org to allow access. Run `curl https://api.github.com/orgs/:org` to get the id.
 
-**Google**
-: An object, configures Google email regex authentication.  Members are defined below.
-
-**Google.Credentials**
+**[google-regex] Auth.Config.Credentials**
 : An object in the same format as can be downloaded from the Google Developers Console.  See [google.ConfigFromJSON](https://godoc.org/golang.org/x/oauth2/google#ConfigFromJSON) for more info.
 
-**Google.EmailRegex**
+**[google-regex] Auth.Config.EmailRegex**
 : Allow users whose email matches the regex access to authenticated upstream servers.  Be careful, and keep it simple.
 
 **TLS**
@@ -165,7 +174,7 @@ go test ./...
 ## Roadmap
 
 - [x] Docs
-- [ ] Tests
+- [x] Tests
 - [x] Google Auth (email regex)
 - [ ] Let's Encrypt provision / renewal
 - [ ] Google Auth (Apps domain) (needs advocate)

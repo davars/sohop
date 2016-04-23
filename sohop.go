@@ -23,6 +23,9 @@ type Config struct {
 	AuthorizedOrgID int
 	Cookie          CookieConfig
 	TLS             TLSConfig
+
+	Github *auth.GithubAuth
+	Google *auth.GoogleAuth
 }
 
 type CookieConfig struct {
@@ -106,6 +109,9 @@ func (c *Config) checkTLS() {
 }
 
 func (c *Config) authorizer() auth.Authorizer {
+	if c.Github != nil || c.Google != nil {
+		log.Fatal("Authorization configuration has changed.  Refer to the README regarding the \"Auth\" key.")
+	}
 	a, err := auth.NewAuthorizer(c.Auth)
 	if err != nil {
 		log.Fatalf("NewAuthorizer: %v", err)
