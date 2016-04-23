@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	registeredAuthorizers["github-org"] = reflect.TypeOf(GithubAuth{})
+	registeredAuthers["github-org"] = reflect.TypeOf(GithubAuth{})
 }
 
 type GithubAuth struct {
@@ -28,7 +28,7 @@ func (ga GithubAuth) OAuthConfig() *oauth2.Config {
 	}
 }
 
-func (ga GithubAuth) Authorize(code string) (string, error) {
+func (ga GithubAuth) Auth(code string) (string, error) {
 	oauthConfig := ga.OAuthConfig()
 
 	tok, err := oauthConfig.Exchange(oauth2.NoContext, code)

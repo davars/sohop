@@ -9,10 +9,10 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-func TestNewAuthorizer(t *testing.T) {
+func TestNewAuther(t *testing.T) {
 	tests := []struct {
 		in  Config
-		out Authorizer
+		out Auther
 		err string
 	}{
 		{
@@ -20,7 +20,7 @@ func TestNewAuthorizer(t *testing.T) {
 				Type:   "none",
 				Config: []byte{},
 			},
-			err: `unknown authorizer type "none"`,
+			err: `unknown auther type "none"`,
 		},
 		{
 			in: Config{
@@ -66,7 +66,7 @@ func TestNewAuthorizer(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		auth, err := NewAuthorizer(test.in)
+		auth, err := NewAuther(test.in)
 		require.Equal(t, test.out, auth)
 		if test.err == "" {
 			require.NoError(t, err)

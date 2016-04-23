@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	registeredAuthorizers["mock"] = reflect.TypeOf(MockAuth{})
+	registeredAuthers["mock"] = reflect.TypeOf(MockAuth{})
 }
 
 type MockAuth struct {
@@ -25,7 +25,7 @@ func (ma MockAuth) OAuthConfig() *oauth2.Config {
 	}
 }
 
-func (ma MockAuth) Authorize(code string) (string, error) {
+func (ma MockAuth) Auth(code string) (string, error) {
 	if ma.Err != "" {
 		return "", fmt.Errorf(ma.Err)
 	}

@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	registeredAuthorizers["gmail-regex"] = reflect.TypeOf(GoogleAuth{})
+	registeredAuthers["gmail-regex"] = reflect.TypeOf(GoogleAuth{})
 }
 
 type GoogleAuth struct {
@@ -50,7 +50,7 @@ type googleIDToken struct {
 	EmailVerified bool   `json:"email_verified"`
 }
 
-func (ga GoogleAuth) Authorize(code string) (string, error) {
+func (ga GoogleAuth) Auth(code string) (string, error) {
 	oauthConfig := ga.OAuthConfig()
 
 	token, err := oauthConfig.Exchange(oauth2.NoContext, code)

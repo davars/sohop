@@ -108,13 +108,13 @@ func (c *Config) checkTLS() {
 	}
 }
 
-func (c *Config) authorizer() auth.Authorizer {
+func (c *Config) auther() auth.Auther {
 	if c.Github != nil || c.Google != nil {
 		log.Fatal("Authorization configuration has changed.  Refer to the README regarding the \"Auth\" key.")
 	}
-	a, err := auth.NewAuthorizer(c.Auth)
+	a, err := auth.NewAuther(c.Auth)
 	if err != nil {
-		log.Fatalf("NewAuthorizer: %v", err)
+		log.Fatalf("NewAuther: %v", err)
 	}
 	return a
 }
@@ -125,8 +125,9 @@ func (s Server) handler() http.Handler {
 
 	conf := s.Config
 	oauthRouter := router.Host(fmt.Sprintf("oauth.%s", conf.Domain)).Subrouter()
-	oauthRouter.Path("/authorized").Handler(auth.Handler(s.store, conf.authorizer()))
-	authenticating := auth.Middleware(s.store, conf.authorizer())
+	auther := conf.auther()
+	oauthRouter.Path("/authorized").Handler(auth.Handler(s.store, auther))
+	authenticating := auth.Middleware(s.store, auther)
 
 	// TODO: switch to JWT so that this isn't necessary
 	oauthRouter.Path("/session").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

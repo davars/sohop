@@ -14,27 +14,27 @@ import (
 	"golang.org/x/oauth2"
 )
 
-var registeredAuthorizers = make(map[string]reflect.Type)
+var registeredAuthers = make(map[string]reflect.Type)
 
-// An Authorizer can be used
-type Authorizer interface {
+// An Auther can be used
+type Auther interface {
 	OAuthConfig() *oauth2.Config
-	Authorize(code string) (string, error)
+	Auth(code string) (string, error)
 }
 
-// A Config can be used to create a new Authorizer
+// A Config can be used to create a new Auther
 type Config struct {
 	Type   string
 	Config json.RawMessage
 }
 
-// NewAuthorizer returns an Authorizer for the given Config
-func NewAuthorizer(c Config) (Authorizer, error) {
-	configType, ok := registeredAuthorizers[c.Type]
+// NewAuther returns an Auther for the given Config
+func NewAuther(c Config) (Auther, error) {
+	configType, ok := registeredAuthers[c.Type]
 	if !ok {
-		return nil, fmt.Errorf("unknown authorizer type %q", c.Type)
+		return nil, fmt.Errorf("unknown auther type %q", c.Type)
 	}
-	config := reflect.New(configType).Interface().(Authorizer)
+	config := reflect.New(configType).Interface().(Auther)
 	err := json.Unmarshal(c.Config, &config)
 	return config, err
 }
@@ -55,7 +55,7 @@ var (
 
 type authState struct {
 	session *sessions.Session
-	auth    Authorizer
+	auth    Auther
 }
 
 func (s *authState) login(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +70,7 @@ func (s *authState) login(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, url, http.StatusFound)
 }
 
-func (s *authState) authorize(w http.ResponseWriter, r *http.Request) {
+func (s *authState) authCode(w http.ResponseWriter, r *http.Request) {
 	delete(s.session.Values, authorizedKey)
 	code := r.URL.Query().Get("code")
 	if code == "" {
@@ -85,7 +85,7 @@ func (s *authState) authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := s.auth.Authorize(code)
+	user, err := s.auth.Auth(code)
 	if err != nil {
 		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
 		return
@@ -110,19 +110,19 @@ func (s *authState) authorize(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
-// Handler returns an http.Handler that implements whatever authorization steps are defined by the Authorizer
+// Handler returns an http.Handler that implements whatever authorization steps are defined by the Auther
 // (typically exchanging the OAuth2 code for an access token and using the token to identify the user).
-func Handler(store store.Namer, auth Authorizer) http.Handler {
+func Handler(store store.Namer, auth Auther) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, _ := store.Get(r, store.Name())
 		state := &authState{session: session, auth: auth}
-		state.authorize(w, r)
+		state.authCode(w, r)
 	})
 }
 
 // Middleware returns a middleware that checks if the requeset has been authorized.  If not, it generates a redirect
-// to the configured Authorizer login URL.
-func Middleware(store store.Namer, auth Authorizer) func(http.Handler) http.Handler {
+// to the configured Auther login URL.
+func Middleware(store store.Namer, auth Auther) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			session, _ := store.Get(r, store.Name())
