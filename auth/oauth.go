@@ -16,7 +16,7 @@ import (
 
 var registeredAuthers = make(map[string]reflect.Type)
 
-// An Auther can be used
+// An Auther abstracts an OAuth flow for authenticating and authorizing access to handlers
 type Auther interface {
 	OAuthConfig() *oauth2.Config
 	Auth(code string) (string, error)
