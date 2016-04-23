@@ -15,6 +15,6 @@ func TestCertValidity(t *testing.T) {
 	}
 	notBefore, notAfter, err := CertValidity(data)
 	require.NoError(t, err)
-	require.Equal(t, time.Date(2016, 2, 16, 12, 28, 28, 0, time.UTC), notBefore)
-	require.Equal(t, time.Date(2017, 2, 15, 12, 28, 28, 0, time.UTC), notAfter)
+	require.Equal(t, time.Date(2016, 4, 23, 02, 44, 44, 0, time.UTC), notBefore)
+	require.Equal(t, time.Date(2017, 4, 23, 02, 44, 44, 0, time.UTC), notAfter)
 }
