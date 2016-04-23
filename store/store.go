@@ -2,11 +2,9 @@
 package store
 
 import (
-	"time"
-
 	"encoding/hex"
-
 	"fmt"
+	"time"
 
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
@@ -44,14 +42,13 @@ var (
 
 // A KeyError is returned when attmpting to create a Namer with an invalid key.  Keys must be
 // hex-encoded strings with length 128.
-type KeyError struct {
-	sample []byte
-}
+type KeyError struct{}
 
 func (k KeyError) Error() string {
 	return fmt.Sprintf(
 		"Session store secret should be a 128-character hex-encoded string.  "+
-			"Here's a freshly generated one: %q", hex.EncodeToString(k.sample))
+			"Here's a freshly generated one: %q",
+		hex.EncodeToString(securecookie.GenerateRandomKey(64)))
 }
 
 func (s *namedStore) init() error {
@@ -63,7 +60,7 @@ func (s *namedStore) init() error {
 	}
 	key, err := hex.DecodeString(s.secret)
 	if err != nil || len(key) != 64 {
-		return KeyError{sample: securecookie.GenerateRandomKey(64)}
+		return KeyError{}
 	}
 	cookieStore := sessions.NewCookieStore(key)
 	cookieStore.Options.HttpOnly = true
