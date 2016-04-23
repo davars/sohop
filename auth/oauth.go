@@ -22,20 +22,20 @@ type Authorizer interface {
 	Authorize(code string) (string, error)
 }
 
-// An AuthConfig can be used to create a new Authorizer
-type AuthConfig struct {
+// A Config can be used to create a new Authorizer
+type Config struct {
 	Type   string
 	Config json.RawMessage
 }
 
-// NewAuthorizer returns an Authorizer for the given AuthConfig
-func NewAuthorizer(ac AuthConfig) (Authorizer, error) {
-	configType, ok := registeredAuthorizers[ac.Type]
+// NewAuthorizer returns an Authorizer for the given Config
+func NewAuthorizer(c Config) (Authorizer, error) {
+	configType, ok := registeredAuthorizers[c.Type]
 	if !ok {
-		return nil, fmt.Errorf("unknown authorizer type %q", ac.Type)
+		return nil, fmt.Errorf("unknown authorizer type %q", c.Type)
 	}
 	config := reflect.New(configType).Interface().(Authorizer)
-	err := json.Unmarshal(ac.Config, &config)
+	err := json.Unmarshal(c.Config, &config)
 	return config, err
 }
 
