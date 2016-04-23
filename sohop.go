@@ -19,8 +19,7 @@ import (
 type Config struct {
 	Domain          string
 	Upstreams       map[string]upstreamSpec
-	Github          *auth.GithubAuth
-	Google          *auth.GoogleAuth
+	Auth            auth.Config
 	AuthorizedOrgID int
 	Cookie          CookieConfig
 	TLS             TLSConfig
@@ -107,16 +106,11 @@ func (c *Config) checkTLS() {
 }
 
 func (c *Config) authorizer() auth.Authorizer {
-	if c.Github != nil && c.Google != nil {
-		log.Fatal("can only use one authorizer; please configure either Google or Github authorization")
+	a, err := auth.NewAuthorizer(c.Auth)
+	if err != nil {
+		log.Fatalf("NewAuthorizer: %v", err)
 	}
-	if c.Github == nil && c.Google == nil {
-		log.Fatal("must define an authorizer; please configure either Google or Github authorization")
-	}
-	if c.Github != nil {
-		return c.Github
-	}
-	return c.Google
+	return a
 }
 
 func (s Server) handler() http.Handler {
