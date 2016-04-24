@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"reflect"
 
-	"bitbucket.org/davars/sohop/store"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
+	"gitlab.com/davars/sohop/store"
 	"golang.org/x/oauth2"
 )
 

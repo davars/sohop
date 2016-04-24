@@ -10,10 +10,10 @@ import (
 	"net/http"
 	"os"
 
-	"bitbucket.org/davars/sohop/auth"
-	"bitbucket.org/davars/sohop/store"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/securecookie"
+	"gitlab.com/davars/sohop/auth"
+	"gitlab.com/davars/sohop/store"
 )
 
 type Config struct {

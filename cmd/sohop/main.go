@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"bitbucket.org/davars/sohop"
+	"gitlab.com/davars/sohop"
 )
 
 var (

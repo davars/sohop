@@ -12,8 +12,8 @@ import (
 
 	"encoding/json"
 
-	"bitbucket.org/davars/sohop/auth"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/davars/sohop/auth"
 )
 
 func dummyBackend(name string) *httptest.Server {

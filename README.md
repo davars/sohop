@@ -29,7 +29,7 @@ certs, **SSL verification is disabled when communicating with proxied services.*
 
 ## Installation
 
-`go get bitbucket.org/davars/sohop/cmd/sohop`
+`go get gitlab.com/davars/sohop/cmd/sohop`
 
 ## Usage
 

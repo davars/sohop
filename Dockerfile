@@ -15,10 +15,10 @@ RUN curl -Lo /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/downlo
 	&& rm /usr/local/bin/gosu.asc \
 	&& chmod +x /usr/local/bin/gosu
 
-COPY . /go/src/bitbucket.org/davars/sohop
-WORKDIR /go/src/bitbucket.org/davars/sohop
+COPY . /go/src/gitlab.com/davars/sohop
+WORKDIR /go/src/gitlab.com/davars/sohop
 RUN go-wrapper download
-RUN go install bitbucket.org/davars/sohop/cmd/sohop
+RUN go install gitlab.com/davars/sohop/cmd/sohop
 
 # allow sohop to still bind to ports 80 & 443 even though it's not root
 RUN setcap cap_net_bind_service=+ep /go/bin/sohop
