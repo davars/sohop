@@ -23,7 +23,6 @@ func dummyBackend(name string) *httptest.Server {
 }
 
 func TestProxy(t *testing.T) {
-	t.Fatalf("fail build to test notifications")
 	const upstreamName = "foo"
 	server := dummyBackend(upstreamName)
 	defer server.Close()
