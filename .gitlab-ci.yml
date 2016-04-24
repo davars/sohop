@@ -2,6 +2,7 @@ image: golang:1.6
 
 test:
   script:
+  - mkdir -p $GOPATH/src/gitlab.com/davars
   - cp -a . $GOPATH/src/gitlab.com/davars/sohop
   - go get -v gitlab.com/davars/sohop...
   - go test gitlab.com/davars/sohop...
