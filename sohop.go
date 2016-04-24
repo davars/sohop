@@ -2,6 +2,7 @@ package sohop
 
 import (
 	"crypto/rand"
+	"crypto/tls"
 	"encoding/hex"
 	"fmt"
 	"log"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/securecookie"
+	"gitlab.com/davars/sohop/acme"
 	"gitlab.com/davars/sohop/auth"
 	"gitlab.com/davars/sohop/store"
 )
@@ -23,6 +25,7 @@ type Config struct {
 	AuthorizedOrgID int
 	Cookie          CookieConfig
 	TLS             TLSConfig
+	Acme            *acme.Config
 
 	Github *auth.GithubAuth
 	Google *auth.GoogleAuth
@@ -61,8 +64,41 @@ func (s Server) Run() {
 	s.Config.checkTLS()
 
 	go func() {
-		err = http.ListenAndServeTLS(s.HTTPSAddr, s.Config.TLS.CertFile, s.Config.TLS.CertKey, s.handler())
-		check(err)
+		if s.Config.Acme == nil {
+			err = http.ListenAndServeTLS(s.HTTPSAddr, s.Config.TLS.CertFile, s.Config.TLS.CertKey, s.handler())
+			check(err)
+		} else {
+			domains := make([]string, 0, len(s.Config.Upstreams)+2)
+			for _, subdomain := range []string{"oauth", "health"} {
+				domains = append(domains, fmt.Sprintf("%s.%s", subdomain, s.Config.Domain))
+			}
+			for subdomain := range s.Config.Upstreams {
+				domains = append(domains, fmt.Sprintf("%s.%s", subdomain, s.Config.Domain))
+			}
+			w, err := s.Config.Acme.Wrapper(&acme.Params{
+				Address: s.HTTPSAddr,
+				Domains: domains,
+			})
+			check(err)
+
+			s.Config.TLS.CertFile = w.Config.TLSCertFile
+			s.Config.TLS.CertKey = w.Config.TLSKeyFile
+
+			tlsConfig := w.TLSConfig()
+
+			listener, err := tls.Listen("tcp", s.HTTPSAddr, tlsConfig)
+			check(err)
+
+			// To enable http2, we need http.Server to have reference to tlsconfig
+			// https://github.com/golang/go/issues/14374
+			server := &http.Server{
+				Addr:      s.HTTPSAddr,
+				Handler:   s.handler(),
+				TLSConfig: tlsConfig,
+			}
+			err = server.Serve(listener)
+			check(err)
+		}
 	}()
 	go func() {
 		err := http.ListenAndServe(s.HTTPAddr,

@@ -30,10 +30,6 @@ type healthStatus struct {
 }
 
 func (s Server) HealthHandler() http.Handler {
-	data, err := ioutil.ReadFile(s.Config.TLS.CertFile)
-	check(err)
-	notBefore, notAfter, err := CertValidity(data)
-	check(err)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		allOk := true
 		responses := make(map[string]healthStatus)
@@ -72,26 +68,42 @@ func (s Server) HealthHandler() http.Handler {
 			}()
 		}
 
-		wg.Wait()
+		certResponse := make(map[string]interface{}, 5)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			data, err := ioutil.ReadFile(s.Config.TLS.CertFile)
+			if err != nil {
+				certResponse["ok"] = false
+				certResponse["error"] = err.Error()
+				return
+			}
+			notBefore, notAfter, err := CertValidity(data)
+			if err != nil {
+				certResponse["ok"] = false
+				certResponse["error"] = err.Error()
+				return
+			}
 
-		certResponse := map[string]interface{}{
-			"expires_at": notAfter,
-		}
-		now := time.Now()
-		if !notBefore.Before(now) {
-			certResponse["error"] = "not yet valid"
-			certResponse["valid_at"] = notBefore
-			certResponse["ok"] = false
-		} else if !notAfter.After(now) {
-			certResponse["error"] = "expired"
-			certResponse["ok"] = false
-		} else if !notAfter.Add(-1 * certWarning).After(now) {
-			certResponse["expires_in"] = notAfter.Sub(now).String()
-			certResponse["error"] = "expires soon"
-			certResponse["ok"] = false
-		} else {
-			certResponse["ok"] = true
-		}
+			certResponse["expires_at"] = notAfter
+			now := time.Now()
+			if !notBefore.Before(now) {
+				certResponse["error"] = "not yet valid"
+				certResponse["valid_at"] = notBefore
+				certResponse["ok"] = false
+			} else if !notAfter.After(now) {
+				certResponse["error"] = "expired"
+				certResponse["ok"] = false
+			} else if !notAfter.Add(-1 * certWarning).After(now) {
+				certResponse["expires_in"] = notAfter.Sub(now).String()
+				certResponse["error"] = "expires soon"
+				certResponse["ok"] = false
+			} else {
+				certResponse["ok"] = true
+			}
+		}()
+
+		wg.Wait()
 
 		allOk = allOk && certResponse["ok"].(bool)
 
