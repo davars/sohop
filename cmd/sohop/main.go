@@ -8,7 +8,7 @@ import (
 	"log"
 	"os"
 
-	"gitlab.com/davars/sohop"
+	"github.com/davars/sohop"
 )
 
 var (

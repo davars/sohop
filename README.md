@@ -1,6 +1,7 @@
 # sohop
 
 [![GoDoc](https://godoc.org/gitlab.com/davars/sohop?status.svg)](https://godoc.org/gitlab.com/davars/sohop)
+[![build status](https://gitlab.com/davars/sohop/badges/master/build.svg)](https://gitlab.com/davars/sohop/commits/master)
 
 This program is a reverse proxy that can optionally restrict access to users authenticated with OAuth (currently
 supports authorizing members of a specified Github organization, or users whose Google account email matches a
@@ -31,7 +32,7 @@ certs, **SSL verification is disabled when communicating with proxied services.*
 
 ## Installation
 
-`go get gitlab.com/davars/sohop/cmd/sohop`
+`go get github.com/davars/sohop/cmd/sohop`
 
 ## Usage
 
@@ -103,7 +104,7 @@ Usage of sohop:
 }
 ```
 
-The config file id unmarshalled into a sohop.Config struct, described here: https://godoc.org/gitlab.com/davars/sohop#Config
+The config file id unmarshalled into a sohop.Config struct, described here: https://godoc.org/github.com/davars/sohop#Config
 
 ## Testing
 

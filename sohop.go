@@ -12,11 +12,11 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/davars/sohop/acme"
+	"github.com/davars/sohop/auth"
+	"github.com/davars/sohop/store"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/securecookie"
-	"gitlab.com/davars/sohop/acme"
-	"gitlab.com/davars/sohop/auth"
-	"gitlab.com/davars/sohop/store"
 )
 
 // A Config can be used to set up a sohop proxy
@@ -44,10 +44,10 @@ type Config struct {
 	// using the ACME protocol.
 	Acme *acme.Config
 
-	// Deprecated.  See https://godoc.org/gitlab.com/davars/sohop/auth#Config.
+	// Deprecated.  See https://godoc.org/github.com/davars/sohop/auth#Config.
 	Github *auth.GithubAuth
 
-	// Deprecated.  See https://godoc.org/gitlab.com/davars/sohop/auth#Config.
+	// Deprecated.  See https://godoc.org/github.com/davars/sohop/auth#Config.
 	Google *auth.GoogleAuth
 }
 

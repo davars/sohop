@@ -19,7 +19,7 @@ func init() {
 // GoogleAuth implements the Google Email Regex middleware.  Users must be
 // logged into Google and their verified email must match the configured regex.
 //
-// The configuration format is described by https://godoc.org/gitlab.com/davars/sohop/auth#GoogleAuthConfig
+// The configuration format is described by https://godoc.org/github.com/davars/sohop/auth#GoogleAuthConfig
 type GoogleAuth struct {
 	config     *oauth2.Config
 	emailRegex *regexp.Regexp
