@@ -1,11 +1,15 @@
 package acme
 
 import (
+	"crypto/sha1"
+	"fmt"
+	"io"
 	"log"
 	"net/url"
-	"path"
-
 	"os"
+	"path"
+	"sort"
+	"strings"
 
 	"github.com/dkumor/acmewrapper"
 )
@@ -24,28 +28,51 @@ func newTOSCallback(agreedTo []string) acmewrapper.TOSCallback {
 	}
 }
 
+// Config contains the variables required for AcmeWrapper
 type Config struct {
+	// Server is the acme server to use
 	Server string
-	Email  string
-	TOS    []string
-	RegDir string
-}
 
-type Params struct {
-	Address string
+	// Email is the account owner's email
+	Email string
+
+	// TOS is an array containing the URLs for accepted Terms of Service
+	TOS []string
+
+	// DataPath is the path where files (registration, registration private key,
+	// cert, and cert key) should be stored.
+	//
+	// All files are stored under <DataPath>/<acme server host>/<account email>/.
+	DataPath string
+
+	// Domains are the domains for which should be added to provisioned
+	// certificates.  The certificate and private key files contain
+	// a hash of this collection so that new certificates are provisioned
+	// if the list of domains changes.
 	Domains []string
+
+	// Address is the address the server is listening on.  Set automatically.
+	Address string `json:"-"`
 }
 
-func (c Config) Wrapper(params *Params) (*acmewrapper.AcmeWrapper, error) {
+// Wrapper returns an AcmeWrapper for the given static Config and dynamic Params
+func (c Config) Wrapper() (*acmewrapper.AcmeWrapper, error) {
 	u, err := url.Parse(c.Server)
 	if err != nil {
 		return nil, err
 	}
-	regPath := path.Join(c.RegDir, u.Host, c.Email)
+
+	regPath := path.Join(c.DataPath, u.Host, c.Email)
 	err = os.MkdirAll(regPath, 0700)
 	if err != nil {
 		return nil, err
 	}
+
+	sort.Strings(c.Domains)
+	h := sha1.New()
+	io.WriteString(h, strings.Join(c.Domains, "-"))
+	domainHash := fmt.Sprintf("%x", h.Sum(nil))[0:10]
+
 	return acmewrapper.New(acmewrapper.Config{
 		Server:           c.Server,
 		Email:            c.Email,
@@ -53,9 +80,9 @@ func (c Config) Wrapper(params *Params) (*acmewrapper.AcmeWrapper, error) {
 		RegistrationFile: path.Join(regPath, "registration.pem"),
 		PrivateKeyFile:   path.Join(regPath, "private_key.pem"),
 
-		Address:     params.Address,
-		Domains:     params.Domains,
-		TLSCertFile: path.Join(regPath, "cert.pem"),
-		TLSKeyFile:  path.Join(regPath, "key.pem"),
+		Address:     c.Address,
+		Domains:     c.Domains,
+		TLSCertFile: path.Join(regPath, fmt.Sprintf("cert-%s.pem", domainHash)),
+		TLSKeyFile:  path.Join(regPath, fmt.Sprintf("key-%s.pem", domainHash)),
 	})
 }

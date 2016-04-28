@@ -75,10 +75,11 @@ func (s Server) Run() {
 			for subdomain := range s.Config.Upstreams {
 				domains = append(domains, fmt.Sprintf("%s.%s", subdomain, s.Config.Domain))
 			}
-			w, err := s.Config.Acme.Wrapper(&acme.Params{
-				Address: s.HTTPSAddr,
-				Domains: domains,
-			})
+
+			s.Config.Acme.Address = s.HTTPSAddr
+			s.Config.Acme.Domains = domains
+
+			w, err := s.Config.Acme.Wrapper()
 			check(err)
 
 			s.Config.TLS.CertFile = w.Config.TLSCertFile
