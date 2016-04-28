@@ -1,3 +1,4 @@
+// Package sohop implements an OAuth-authenticating reverse proxy.
 package sohop
 
 import (

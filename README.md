@@ -1,5 +1,7 @@
 # sohop
 
+[![GoDoc](https://godoc.org/gitlab.com/davars/sohop?status.svg)](https://godoc.org/gitlab.com/davars/sohop)
+
 This program is a reverse proxy that can optionally restrict access to users authenticated with OAuth (currently
 supports authorizing members of a specified Github organization, or users whose Google account email matches a
 specified regex).  It also provides a health check endpoint that reports the reachability of the upstream services.

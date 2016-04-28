@@ -1,3 +1,4 @@
+// Package main implements the CLI for sohop.
 package main
 
 import (

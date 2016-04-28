@@ -1,3 +1,5 @@
+// Package acme integrates with https://github.com/dkumor/acmewrapper to support
+// automatic provisioning of TLS certificates.
 package acme
 
 import (

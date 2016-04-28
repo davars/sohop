@@ -1,4 +1,5 @@
-// store provices an implementation of sessions.Store that also carries its name around with it.
+// Package store provices an implementation of sessions.Store that also carries
+// its name around with it.
 package store
 
 import (

@@ -1,3 +1,4 @@
+// Package auth implements the OAuth authentication flows for sohop.
 package auth
 
 import (
