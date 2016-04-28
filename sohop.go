@@ -93,10 +93,10 @@ func (s Server) Run() {
 
 	s.store, err = s.Config.namer()
 	check(err)
-	s.Config.checkTLS()
 
 	go func() {
 		if s.Config.Acme == nil {
+			s.Config.checkTLS()
 			err = http.ListenAndServeTLS(s.HTTPSAddr, s.Config.TLS.CertFile, s.Config.TLS.CertKey, s.handler())
 			check(err)
 		} else {
