@@ -30,7 +30,7 @@ func newTOSCallback(agreedTo []string) acmewrapper.TOSCallback {
 
 // Config contains the variables required for AcmeWrapper
 type Config struct {
-	// Server is the acme server to use
+	// Server is the ACME server to use
 	Server string
 
 	// Email is the account owner's email
@@ -42,7 +42,7 @@ type Config struct {
 	// DataPath is the path where files (registration, registration private key,
 	// cert, and cert key) should be stored.
 	//
-	// All files are stored under <DataPath>/<acme server host>/<account email>/.
+	// All files are stored under <DataPath>/<ACME server host>/<account email>/.
 	DataPath string
 
 	// Domains are the domains for which should be added to provisioned
@@ -55,7 +55,7 @@ type Config struct {
 	Address string `json:"-"`
 }
 
-// Wrapper returns an AcmeWrapper for the given static Config and dynamic Params
+// Wrapper returns an AcmeWrapper for this Config
 func (c Config) Wrapper() (*acmewrapper.AcmeWrapper, error) {
 	u, err := url.Parse(c.Server)
 	if err != nil {

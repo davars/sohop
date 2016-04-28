@@ -20,6 +20,8 @@ func parseCert(certPem []byte) (*x509.Certificate, error) {
 
 }
 
+// CertValidity parses the validity timestamps from the provided PEM-encoded
+// cert
 func CertValidity(certPem []byte) (notBefore, notAfter time.Time, err error) {
 	cert, err := parseCert(certPem)
 	if err != nil {

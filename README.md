@@ -101,69 +101,7 @@ Usage of sohop:
 }
 ```
 
-
-### Config Definitions
-
-**Domain**
-: The domain to which the subdomains belong.  Also used as the domain for the session cookie.
-
-**Cookie**
-: (optional) An object, configures the session cookie store.  Members are defined below.
-
-**Cookie.Name**
-: (optional) Name of the session cookie.  If not set, a random name will be generated on start-up.
-
-**Cookie.Secret**
-: (optional) Secret key used to authenticate session cookies. Should be a hex-encoded string 128 characters in length (64 byte key).  If not set, a random key will be generated on start-up.  Run `openssl rand -hex 64` to generate a key.
-
-**Auth**
-: An object, configures authentication.
-
-**Auth.Type**
-: Supported types are: github-org, google-regex
-
-**Auth.Config**
-: The structure of this value varies depending on the auth type.
-
-**[github-org] Auth.Config.ClientID** / **Auth.Config.ClientSecret**
-: You'll need to create an application to use the Github API for authentication.  Read Github's [Basics of Authentication](https://developer.github.com/guides/basics-of-authentication/) to get an overview for how this works.
-
-**[github-org] Auth.Config.OrgID**
-: ID of the org to allow access. Run `curl https://api.github.com/orgs/:org` to get the id.
-
-**[google-regex] Auth.Config.Credentials**
-: An object in the same format as can be downloaded from the Google Developers Console.  See [google.ConfigFromJSON](https://godoc.org/golang.org/x/oauth2/google#ConfigFromJSON) for more info.
-
-**[google-regex] Auth.Config.EmailRegex**
-: Allow users whose email matches the regex access to authenticated upstream servers.  Be careful, and keep it simple.
-
-**TLS**
-: An object, specifies the TLS configuration for the server.  Memebrs are defined below.
-
-**TLS.CertFile**
-: Path to the PEM-encoded server certificate.
-
-**TLS.CertKey**
-: Path to the unencrypted PEM-encoded private key for the server certificate.
-
-**Upstreams**
-: An array of configurations for upstream servers.  Keys are the subdomain to proxy to the configured server.  Values are objects whose members are defined below.
-
-**Upstreams.URL**
-: The URL of the upstream server.
-
-**Upstreams.HealthCheck**
-: (optional) URL to use as a health check, if different from Upstreams.URL (for example if Upstreams.URL returns a 302 response).  Should return a 200 response if the upstream is healthy.
-
-**Upstreams.WebSocket**
-: (optional) If provided, sohop will also proxy WebSocket connections to this URL.
-
-**Upstreams.Auth**
-: (default: false) Require authentication for this upstream.
-
-**Upstreams.Headers**
-: (optional) A map of headers to explicitly set on the upstream request.  Can be a template, evaluated with the current session available as `.Session`
-
+The config file id unmarshalled into a sohop.Config struct, described here: https://godoc.org/gitlab.com/davars/sohop#Config
 
 ## Testing
 
@@ -176,7 +114,7 @@ go test ./...
 - [x] Docs
 - [x] Tests
 - [x] Google Auth (email regex)
-- [ ] Let's Encrypt provision / renewal
+- [x] Let's Encrypt provision / renewal
 - [ ] Google Auth (Apps domain) (needs advocate)
 - [ ] Google Auth (groups) (needs advocate)
 

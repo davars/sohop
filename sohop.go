@@ -18,27 +18,59 @@ import (
 	"gitlab.com/davars/sohop/store"
 )
 
+// A Config can be used to set up a sohop proxy
 type Config struct {
-	Domain          string
-	Upstreams       map[string]upstreamSpec
-	Auth            auth.Config
-	AuthorizedOrgID int
-	Cookie          CookieConfig
-	TLS             TLSConfig
-	Acme            *acme.Config
+	// Domain is the domain to which the subdomains belong. Also used as the
+	// domain for the session cookie.
+	Domain string
 
+	// Upstreams is an array of configurations for upstream servers.  Keys are
+	// the subdomain to proxy to the configured server.  Values describe
+	// various aspects of the upstream server.
+	Upstreams map[string]UpstreamConfig
+
+	// Auth configures the auth middleware.
+	Auth auth.Config
+
+	// Cookie configures the session cookie store.
+	Cookie CookieConfig
+
+	// TLS can be used to specify a static TLS configuration for the server.
+	// It is overridden by the values from the AcmeWrapper if Acme is used.
+	TLS TLSConfig
+
+	// Acme configures automatic provisioning and renewal of TLS certificates
+	// using the ACME protocol.
+	Acme *acme.Config
+
+	// Deprecated.  See https://godoc.org/gitlab.com/davars/sohop/auth#Config.
 	Github *auth.GithubAuth
+
+	// Deprecated.  See https://godoc.org/gitlab.com/davars/sohop/auth#Config.
 	Google *auth.GoogleAuth
 }
 
+// CookieConfig configures the session cookie store.
 type CookieConfig struct {
-	Name   string
+	// Name is the name of the session cookie.  If not set, a random name will
+	// be generated on start-up.
+	Name string
+
+	// Secret is the private key used to authenticate session cookies. Should be
+	// a hex-encoded string 128 characters in length (64 byte key).  If not set,
+	// a random key will be generated on start-up.  Run `openssl rand -hex 64`
+	// to generate a key.
 	Secret string
 }
 
+// TLSConfig configures the server certificate.
 type TLSConfig struct {
+	// CertFile is a path to the PEM-encoded server certificate.
 	CertFile string
-	CertKey  string
+
+	// CertKey is a path to the unencrypted PEM-encoded private key for the
+	// server certificate.
+	CertKey string
 }
 
 type Server struct {
@@ -114,12 +146,25 @@ func (s Server) Run() {
 	select {}
 }
 
-type upstreamSpec struct {
-	URL         string
-	Auth        bool
+type UpstreamConfig struct {
+	// The URL of the upstream server.
+	URL string
+
+	// Auth is whether requests to this upstream require authentication.
+	Auth bool
+
+	// HealthCheck is a URL to use as a health check, if different from
+	// Upstreams.URL (for example if UpstreamConfig.URL returns a 302 response).
+	// It should return a 200 response if the upstream is healthy.
 	HealthCheck string
-	WebSocket   string
-	Headers     http.Header
+
+	// WebSocket is a ws:// or wss:// URL receive proxied WebSocket connections.
+	WebSocket string
+
+	// Headers can be used to replace the headers of an incomping request
+	// before it is sent upstream.  The values are templates, evaluated with the
+	// current session available as `.Session`.
+	Headers http.Header
 }
 
 func (c *Config) namer() (store.Namer, error) {

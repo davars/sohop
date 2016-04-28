@@ -16,16 +16,29 @@ func init() {
 	registeredAuthers["gmail-regex"] = reflect.TypeOf(GoogleAuth{})
 }
 
+// GoogleAuth implements the Google Email Regex middleware.  Users must be
+// logged into Google and their verified email must match the configured regex.
+//
+// The configuration format is described by https://godoc.org/gitlab.com/davars/sohop/auth#GoogleAuthConfig
 type GoogleAuth struct {
 	config     *oauth2.Config
 	emailRegex *regexp.Regexp
 }
 
+// GoogleAuthConfig is used to configure a GoogleAuth.  The Credentials format
+// described at https://godoc.org/golang.org/x/oauth2/google#ConfigFromJSON
+type GoogleAuthConfig struct {
+	// Credentials is an object in the same format as can be downloaded from the
+	// Google Developers Console.
+	Credentials json.RawMessage
+
+	// EmailRegex is run against incoming verified email addressess.  Users
+	// whose email matches are authorized.  Be careful, and keep it simple.
+	EmailRegex string
+}
+
 func (ga *GoogleAuth) UnmarshalJSON(data []byte) error {
-	v := &struct {
-		Credentials json.RawMessage
-		EmailRegex  string
-	}{}
+	v := &GoogleAuthConfig{}
 	err := json.Unmarshal(data, v)
 	if err != nil {
 		return err

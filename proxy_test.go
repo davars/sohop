@@ -30,7 +30,7 @@ func TestProxy(t *testing.T) {
 	sohop := Server{
 		Config: &Config{
 			Domain: "example.com",
-			Upstreams: map[string]upstreamSpec{
+			Upstreams: map[string]UpstreamConfig{
 				upstreamName: {
 					URL: server.URL,
 				},

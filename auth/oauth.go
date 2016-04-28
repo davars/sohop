@@ -24,7 +24,12 @@ type Auther interface {
 
 // A Config can be used to create a new Auther
 type Config struct {
-	Type   string
+	// Type is the type of Auther.  Supported types are: github-org,
+	// google-regex
+	Type string
+
+	// Config configures the Auther.  The structure of this value varies
+	// depending on the auth type.
 	Config json.RawMessage
 }
 
