@@ -11,6 +11,7 @@ func init() {
 	registeredAuthers["mock"] = reflect.TypeOf(MockAuth{})
 }
 
+// MockAuth is an Auther that is useful for writing tests
 type MockAuth struct {
 	ClientID     string
 	ClientSecret string
@@ -18,6 +19,7 @@ type MockAuth struct {
 	Err          string
 }
 
+// OAuthConfig is implemented so MockAuth satisfies the Auther interface.
 func (ma MockAuth) OAuthConfig() *oauth2.Config {
 	return &oauth2.Config{
 		ClientID:     ma.ClientID,
@@ -25,7 +27,8 @@ func (ma MockAuth) OAuthConfig() *oauth2.Config {
 	}
 }
 
-func (ma MockAuth) Auth(code string) (string, error) {
+// Auth is implemented so MockAuth satisfies the Auther interface.
+func (ma MockAuth) Auth(_ string) (string, error) {
 	if ma.Err != "" {
 		return "", fmt.Errorf(ma.Err)
 	}

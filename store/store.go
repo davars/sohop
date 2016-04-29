@@ -15,7 +15,7 @@ var (
 	sessionAge = 24 * time.Hour
 )
 
-// Name is a sessions.Store that also has its own name
+// Namer is a sessions.Store that also has its own name
 type Namer interface {
 	sessions.Store
 	Name() string
@@ -45,6 +45,7 @@ var (
 // hex-encoded strings with length 128.
 type KeyError struct{}
 
+// Error implements the error interface
 func (k KeyError) Error() string {
 	return fmt.Sprintf(
 		"Session store secret should be a 128-character hex-encoded string.  "+

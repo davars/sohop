@@ -63,6 +63,8 @@ func (c *Config) createUpstreams() (map[string]upstream, error) {
 	return m, nil
 }
 
+// ProxyHandler selects the appropriate upstream based on subdomain of the
+// incoming request and does the proxying.
 func (s Server) ProxyHandler() http.Handler {
 	upstreams, err := s.Config.createUpstreams()
 	check(err)

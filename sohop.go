@@ -74,6 +74,7 @@ type TLSConfig struct {
 	CertKey string
 }
 
+// A Server is an OAuth-authenticating reverse proxy.
 type Server struct {
 	Config    *Config
 	HTTPAddr  string
@@ -89,6 +90,7 @@ func check(err error) {
 	}
 }
 
+// Run bootstraps the listeners then waits forever.
 func (s Server) Run() {
 	var err error
 
@@ -147,6 +149,7 @@ func (s Server) Run() {
 	select {}
 }
 
+// UpstreamConfig configures a single upstream endpoint.
 type UpstreamConfig struct {
 	// The URL of the upstream server.
 	URL string

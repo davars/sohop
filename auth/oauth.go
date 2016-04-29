@@ -17,7 +17,8 @@ import (
 
 var registeredAuthers = make(map[string]reflect.Type)
 
-// An Auther abstracts an OAuth flow for authenticating and authorizing access to handlers
+// An Auther abstracts an OAuth flow for authenticating and authorizing access
+// to handlers
 type Auther interface {
 	OAuthConfig() *oauth2.Config
 	Auth(code string) (string, error)
@@ -53,9 +54,20 @@ const (
 )
 
 var (
-	ErrMissingCode        = "Missing authorization code."
-	ErrMissingState       = "Something unexpected happened.  Please try again."
-	ErrUnauthorized       = "Unauthorized."
+	// ErrMissingCode is returned if authorization is attempted without an
+	// authorization code.
+	ErrMissingCode = "Missing authorization code."
+
+	// ErrMissingState is returned if the state param in the authorization
+	// request doesn't match the state in the session.
+	ErrMissingState = "Something unexpected happened.  Please try again."
+
+	// ErrUnauthorized is returned on authorization failure.
+	ErrUnauthorized = "Unauthorized."
+
+	// ErrMissingRedirectURL is returned when authorization is successful, but
+	// we don't know where to send the user because there was no RedirectURL
+	// in the session.
 	ErrMissingRedirectURL = "Not sure where you were going."
 )
 
@@ -68,7 +80,7 @@ func (s *authState) login(w http.ResponseWriter, r *http.Request) {
 	state := string(encodeBase64(securecookie.GenerateRandomKey(30)))
 	s.session.Values[stateKey] = state
 	err := s.session.Save(r, w)
-	if checkServerError(err, w, r) {
+	if checkServerError(err, w) {
 		return
 	}
 
@@ -87,7 +99,7 @@ func (s *authState) authCode(w http.ResponseWriter, r *http.Request) {
 	state, ok := s.session.Values[stateKey].(string)
 	delete(s.session.Values, stateKey)
 	if !ok || state != r.URL.Query().Get("state") {
-		checkServerError(errors.New(ErrMissingState), w, r)
+		checkServerError(errors.New(ErrMissingState), w)
 		return
 	}
 
@@ -98,7 +110,7 @@ func (s *authState) authCode(w http.ResponseWriter, r *http.Request) {
 	}
 	s.session.Values[userKey] = user
 	s.session.Values[authorizedKey] = true
-	if checkServerError(err, w, r) {
+	if checkServerError(err, w) {
 		return
 	}
 
@@ -108,7 +120,7 @@ func (s *authState) authCode(w http.ResponseWriter, r *http.Request) {
 	}
 	delete(s.session.Values, redirectURLKey)
 	if redirectURL == "" {
-		checkServerError(errors.New(ErrMissingRedirectURL), w, r)
+		checkServerError(errors.New(ErrMissingRedirectURL), w)
 		return
 	}
 
@@ -116,8 +128,9 @@ func (s *authState) authCode(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
-// Handler returns an http.Handler that implements whatever authorization steps are defined by the Auther
-// (typically exchanging the OAuth2 code for an access token and using the token to identify the user).
+// Handler returns an http.Handler that implements whatever authorization steps
+// are defined by the Auther (typically exchanging the OAuth2 code for an access
+// token and using the token to identify the user).
 func Handler(store store.Namer, auth Auther) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, _ := store.Get(r, store.Name())
@@ -126,8 +139,9 @@ func Handler(store store.Namer, auth Auther) http.Handler {
 	})
 }
 
-// Middleware returns a middleware that checks if the requeset has been authorized.  If not, it generates a redirect
-// to the configured Auther login URL.
+// Middleware returns a middleware that checks if the requeset has been
+// authorized.  If not, it generates a redirect to the configured Auther login
+// URL.
 func Middleware(store store.Namer, auth Auther) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -161,8 +175,9 @@ func absoluteURL(r *http.Request) string {
 	return fmt.Sprintf("%s://%s%s", proto, r.Host, r.RequestURI)
 }
 
-// checkServerError renders an http.StatusInternalServerError if the provided err is not nil
-func checkServerError(err error, w http.ResponseWriter, r *http.Request) bool {
+// checkServerError renders an http.StatusInternalServerError if the provided
+// err is not nil
+func checkServerError(err error, w http.ResponseWriter) bool {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return true

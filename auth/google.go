@@ -32,11 +32,14 @@ type GoogleAuthConfig struct {
 	// Google Developers Console.
 	Credentials json.RawMessage
 
-	// EmailRegex is run against incoming verified email addressess.  Users
+	// EmailRegex is run against incoming verified email addresses.  Users
 	// whose email matches are authorized.  Be careful, and keep it simple.
 	EmailRegex string
 }
 
+// UnmarshalJSON populates a GoogleAuth from JSON.  First the data is loaded
+// into a GoogleAuthConfig.  An oauth2.Config is created from the Credentials
+// field, and EmailRegex is compiled.
 func (ga *GoogleAuth) UnmarshalJSON(data []byte) error {
 	v := &GoogleAuthConfig{}
 	err := json.Unmarshal(data, v)
@@ -54,6 +57,7 @@ func (ga *GoogleAuth) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// OAuthConfig is implemented so GoogleAuth satisfies the Auther interface.
 func (ga GoogleAuth) OAuthConfig() *oauth2.Config {
 	return ga.config
 }
@@ -63,6 +67,7 @@ type googleIDToken struct {
 	EmailVerified bool   `json:"email_verified"`
 }
 
+// Auth is implemented so GoogleAuth satisfies the Auther interface.
 func (ga GoogleAuth) Auth(code string) (string, error) {
 	oauthConfig := ga.OAuthConfig()
 

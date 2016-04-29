@@ -29,6 +29,9 @@ type healthStatus struct {
 	LatencyMS time.Duration `json:"latency_ms"`
 }
 
+// HealthHandler checks each upstream and considers them healthy if they return
+// a 200 response.  Also, the health check will fail if the TLS certificate will
+// expire within 72 hours.
 func (s Server) HealthHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		allOk := true

@@ -28,6 +28,7 @@ type GithubAuth struct {
 	OrgID int
 }
 
+// OAuthConfig is implemented so GithubAuth satisfies the Auther interface.
 func (ga GithubAuth) OAuthConfig() *oauth2.Config {
 	return &oauth2.Config{
 		ClientID:     ga.ClientID,
@@ -37,6 +38,7 @@ func (ga GithubAuth) OAuthConfig() *oauth2.Config {
 	}
 }
 
+// Auth is implemented so GithubAuth satisfies the Auther interface.
 func (ga GithubAuth) Auth(code string) (string, error) {
 	oauthConfig := ga.OAuthConfig()
 
