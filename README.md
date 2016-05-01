@@ -28,6 +28,7 @@ certs, **SSL verification is disabled when communicating with proxied services.*
 * Simple authentication with OAuth
 * Automatic TLS certificates via Let's Encrypt
 * Proxies WebSocket connections
+* HTTP/2 support when compiled with Go >= 1.6
 * Replace headers that are forwarded using session cookies and Go templates
 * Simple, forkable codebase (maybe not yet but I'd like to get there).  Configure your web server in Go!
 
