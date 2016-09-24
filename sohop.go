@@ -11,6 +11,7 @@ import (
 	"math/big"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/davars/sohop/acme"
 	"github.com/davars/sohop/auth"
@@ -80,8 +81,9 @@ type Server struct {
 	HTTPAddr  string
 	HTTPSAddr string
 
-	proxy http.Handler
-	store store.Namer
+	proxy  http.Handler
+	store  store.Namer
+	health *healthReport
 }
 
 func check(err error) {
@@ -96,6 +98,14 @@ func (s Server) Run() {
 
 	s.store, err = s.Config.namer()
 	check(err)
+
+	go func() {
+		s.health = &healthReport{}
+		for {
+			s.performCheck()
+			time.Sleep(5 * time.Second)
+		}
+	}()
 
 	go func() {
 		if s.Config.Acme == nil {
