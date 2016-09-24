@@ -1,4 +1,4 @@
-FROM golang:1.6
+FROM golang:1.7
 MAINTAINER Dave Jack <davars@gmail.com>
 
 # explicitly set user/group IDs
