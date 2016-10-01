@@ -87,7 +87,7 @@ func (s Server) performCheck() {
 			certResponse["error"] = err.Error()
 			return
 		}
-		notBefore, notAfter, err := CertValidity(data)
+		notBefore, notAfter, err := certValidity(data)
 		if err != nil {
 			certResponse["ok"] = false
 			certResponse["error"] = err.Error()

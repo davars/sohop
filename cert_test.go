@@ -13,7 +13,7 @@ func TestCertValidity(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	notBefore, notAfter, err := CertValidity(data)
+	notBefore, notAfter, err := certValidity(data)
 	require.NoError(t, err)
 	require.Equal(t, time.Date(2016, 4, 23, 02, 44, 44, 0, time.UTC), notBefore)
 	require.Equal(t, time.Date(2017, 4, 23, 02, 44, 44, 0, time.UTC), notAfter)
