@@ -24,6 +24,10 @@ func (ma MockAuth) OAuthConfig() *oauth2.Config {
 	return &oauth2.Config{
 		ClientID:     ma.ClientID,
 		ClientSecret: ma.ClientSecret,
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  "https://mock/auth",
+			TokenURL: "https://mock/token",
+		},
 	}
 }
 
