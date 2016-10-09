@@ -4,6 +4,7 @@ package auth
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -46,19 +47,19 @@ func NewAuther(c Config) (Auther, error) {
 var (
 	// ErrMissingCode is returned if authorization is attempted without an
 	// authorization code.
-	ErrMissingCode = "Missing authorization code."
+	ErrMissingCode = errors.New("Missing authorization code.")
 
 	// ErrMissingState is returned if the state param in the authorization
 	// request doesn't match the state in the session.
-	ErrMissingState = "Something unexpected happened.  Please try again."
+	ErrMissingState = errors.New("Something unexpected happened.  Please try again.")
 
 	// ErrUnauthorized is returned on authorization failure.
-	ErrUnauthorized = "Unauthorized."
+	ErrUnauthorized = errors.New("Unauthorized.")
 
 	// ErrMissingRedirectURL is returned when authorization is successful, but
 	// we don't know where to send the user because there was no RedirectURL
 	// in the session.
-	ErrMissingRedirectURL = "Not sure where you were going."
+	ErrMissingRedirectURL = errors.New("Not sure where you were going.")
 )
 
 // Handler returns an http.Handler that implements whatever authorization steps

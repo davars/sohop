@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/davars/sohop/store"
@@ -47,20 +46,20 @@ func (s *oauthFLow) authenticateCode(w http.ResponseWriter, r *http.Request) {
 	delete(session.Values, authorizedKey)
 	code := r.URL.Query().Get("code")
 	if code == "" {
-		http.Error(w, ErrMissingCode, http.StatusBadRequest)
+		http.Error(w, ErrMissingCode.Error(), http.StatusBadRequest)
 		return
 	}
 
 	state, ok := session.Values[stateKey].(string)
 	delete(session.Values, stateKey)
 	if !ok || state != r.URL.Query().Get("state") {
-		checkServerError(errors.New(ErrMissingState), w)
+		checkServerError(ErrMissingState, w)
 		return
 	}
 
 	user, err := s.auth.Auth(code)
 	if err != nil {
-		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
+		http.Error(w, ErrUnauthorized.Error(), http.StatusUnauthorized)
 		return
 	}
 	session.Values[userKey] = user
@@ -75,7 +74,7 @@ func (s *oauthFLow) authenticateCode(w http.ResponseWriter, r *http.Request) {
 	}
 	delete(session.Values, redirectURLKey)
 	if redirectURL == "" {
-		checkServerError(errors.New(ErrMissingRedirectURL), w)
+		checkServerError(ErrMissingRedirectURL, w)
 		return
 	}
 
