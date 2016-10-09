@@ -4,14 +4,11 @@ package auth
 import (
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
 
 	"github.com/davars/sohop/store"
-	"github.com/gorilla/securecookie"
-	"github.com/gorilla/sessions"
 	"golang.org/x/oauth2"
 )
 
@@ -46,13 +43,6 @@ func NewAuther(c Config) (Auther, error) {
 	return config, err
 }
 
-const (
-	authorizedKey  = "auth"
-	redirectURLKey = "redir"
-	stateKey       = "state"
-	userKey        = "user"
-)
-
 var (
 	// ErrMissingCode is returned if authorization is attempted without an
 	// authorization code.
@@ -71,71 +61,13 @@ var (
 	ErrMissingRedirectURL = "Not sure where you were going."
 )
 
-type authState struct {
-	session *sessions.Session
-	auth    Auther
-}
-
-func (s *authState) login(w http.ResponseWriter, r *http.Request) {
-	state := string(encodeBase64(securecookie.GenerateRandomKey(30)))
-	s.session.Values[stateKey] = state
-	err := s.session.Save(r, w)
-	if checkServerError(err, w) {
-		return
-	}
-
-	url := s.auth.OAuthConfig().AuthCodeURL(state, oauth2.AccessTypeOffline)
-	http.Redirect(w, r, url, http.StatusFound)
-}
-
-func (s *authState) authCode(w http.ResponseWriter, r *http.Request) {
-	delete(s.session.Values, authorizedKey)
-	code := r.URL.Query().Get("code")
-	if code == "" {
-		http.Error(w, ErrMissingCode, http.StatusBadRequest)
-		return
-	}
-
-	state, ok := s.session.Values[stateKey].(string)
-	delete(s.session.Values, stateKey)
-	if !ok || state != r.URL.Query().Get("state") {
-		checkServerError(errors.New(ErrMissingState), w)
-		return
-	}
-
-	user, err := s.auth.Auth(code)
-	if err != nil {
-		http.Error(w, ErrUnauthorized, http.StatusUnauthorized)
-		return
-	}
-	s.session.Values[userKey] = user
-	s.session.Values[authorizedKey] = true
-	if checkServerError(err, w) {
-		return
-	}
-
-	redirectURL, ok := s.session.Values[redirectURLKey].(string)
-	if !ok {
-		redirectURL = ""
-	}
-	delete(s.session.Values, redirectURLKey)
-	if redirectURL == "" {
-		checkServerError(errors.New(ErrMissingRedirectURL), w)
-		return
-	}
-
-	s.session.Save(r, w)
-	http.Redirect(w, r, redirectURL, http.StatusFound)
-}
-
 // Handler returns an http.Handler that implements whatever authorization steps
 // are defined by the Auther (typically exchanging the OAuth2 code for an access
 // token and using the token to identify the user).
 func Handler(store store.Namer, auth Auther) http.Handler {
+	flow := &oauthFLow{store: store, auth: auth}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, _ := store.Get(r, store.Name())
-		state := &authState{session: session, auth: auth}
-		state.authCode(w, r)
+		flow.authenticateCode(w, r)
 	})
 }
 
@@ -143,18 +75,14 @@ func Handler(store store.Namer, auth Auther) http.Handler {
 // authorized.  If not, it generates a redirect to the configured Auther login
 // URL.
 func Middleware(store store.Namer, auth Auther) func(http.Handler) http.Handler {
+	flow := &oauthFLow{store: store, auth: auth}
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			session, _ := store.Get(r, store.Name())
-			if auth, ok := session.Values[authorizedKey].(bool); auth && ok {
-				next.ServeHTTP(w, r)
+			if flow.redirectToLogin(w, r) {
 				return
 			}
 
-			session.Values[redirectURLKey] = absoluteURL(r)
-			state := &authState{session: session, auth: auth}
-			state.login(w, r)
-			session.Save(r, w)
+			next.ServeHTTP(w, r)
 		})
 	}
 }

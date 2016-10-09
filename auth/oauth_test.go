@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -56,7 +57,7 @@ func TestNewAuther(t *testing.T) {
 				Type:   "mock",
 				Config: []byte(`{"ClientID": "id", "ClientSecret": "secret", "User": "user", "Err": "error"}`),
 			},
-			out: newMockAuther(),
+			out: newMockAuther("error"),
 		},
 		{
 			in: Config{
@@ -94,15 +95,15 @@ func TestMiddleware(t *testing.T) {
 		},
 	}
 
-	auther := newMockAuther()
+	auther := newMockAuther("error")
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Log(name)
 
-			ts := newTestStore()
+			ts := newTestStore(t)
 			if test.authorized {
-				ts.authorize(t)
+				ts.s.Values[authorizedKey] = true
 			}
 
 			nextCalled := false
@@ -111,7 +112,7 @@ func TestMiddleware(t *testing.T) {
 				nextCalled = true
 			}))
 
-			resp := callHandler(t, handler)
+			resp := callHandler(t, handler, "/path?query=param")
 
 			if test.expectsNextCalled {
 				if !nextCalled {
@@ -129,8 +130,20 @@ func TestMiddleware(t *testing.T) {
 	}
 }
 
-func newMockAuther() Auther {
-	return &MockAuth{ClientID: "id", ClientSecret: "secret", User: "user", Err: "error"}
+func TestHandler(t *testing.T) {
+	auther := newMockAuther("")
+	ts := newTestStore(t)
+	ts.s.Values[stateKey] = "testing"
+	ts.s.Values[redirectURLKey] = "/somewhere"
+	handler := Handler(ts, auther)
+	resp := callHandler(t, handler, "/foo?code=42&state=testing")
+	url, err := resp.Location()
+	require.NoError(t, err)
+	assert.Equal(t, "/somewhere", url.Path)
+}
+
+func newMockAuther(err string) Auther {
+	return &MockAuth{ClientID: "id", ClientSecret: "secret", User: "user", Err: err}
 }
 
 // a testStore implements store.Namer (which itself embeds sessions.Store), that uses the same session object for all
@@ -160,16 +173,13 @@ func (ts *testStore) Save(r *http.Request, w http.ResponseWriter, s *sessions.Se
 	return nil
 }
 
-func (ts *testStore) authorize(t *testing.T) {
+func newTestStore(t *testing.T) *testStore {
+	ts := &testStore{}
 	sess, err := ts.New(nil, ts.Name())
 	assert.NoError(t, err)
-	sess.Values[authorizedKey] = true
 	err = ts.Save(nil, nil, sess)
 	assert.NoError(t, err)
-}
-
-func newTestStore() *testStore {
-	return &testStore{}
+	return ts
 }
 
 // noRedirectClient return an *http.Client that never follows redirects
@@ -184,11 +194,11 @@ func noRedirectClient(t *testing.T) *http.Client {
 
 // callHandler invokes handler as part of an http server request (rather than simply calling ServeHTTP).  Not very
 // useful outside of testing middleware.
-func callHandler(t *testing.T, handler http.Handler) *http.Response {
+func callHandler(t *testing.T, handler http.Handler, uri string) *http.Response {
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
-	url := server.URL + "/path?query=param"
+	url := server.URL + uri
 
 	resp, err := noRedirectClient(t).Get(url)
 	assert.NoError(t, err)
