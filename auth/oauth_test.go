@@ -82,15 +82,15 @@ func TestNewAuther(t *testing.T) {
 
 func TestMiddleware(t *testing.T) {
 	tests := map[string]struct {
-		authorized        bool
+		values            sessionValues
 		expectsNextCalled bool
 	}{
 		"no auth": {
-			authorized:        false,
+			values:            sessionValues{},
 			expectsNextCalled: false,
 		},
 		"auth": {
-			authorized:        true,
+			values:            sessionValues{authorizedKey: true},
 			expectsNextCalled: true,
 		},
 	}
@@ -101,11 +101,7 @@ func TestMiddleware(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Log(name)
 
-			ts := newTestStore(t)
-			if test.authorized {
-				ts.s.Values[authorizedKey] = true
-			}
-
+			ts := newTestStore(t, test.values)
 			nextCalled := false
 			handler := Middleware(ts, auther)(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 				t.Log("next handler called")
@@ -132,14 +128,17 @@ func TestMiddleware(t *testing.T) {
 
 func TestHandler(t *testing.T) {
 	auther := newMockAuther("")
-	ts := newTestStore(t)
-	ts.s.Values[stateKey] = "testing"
-	ts.s.Values[redirectURLKey] = "/somewhere"
+	redirectURL := "https://some.other/place"
+
+	ts := newTestStore(t, sessionValues{
+		stateKey:       "testing",
+		redirectURLKey: redirectURL,
+	})
 	handler := Handler(ts, auther)
 	resp := callHandler(t, handler, "/foo?code=42&state=testing")
 	url, err := resp.Location()
 	require.NoError(t, err)
-	assert.Equal(t, "/somewhere", url.Path)
+	assert.Equal(t, redirectURL, url.String())
 }
 
 func newMockAuther(err string) Auther {
@@ -173,12 +172,15 @@ func (ts *testStore) Save(r *http.Request, w http.ResponseWriter, s *sessions.Se
 	return nil
 }
 
-func newTestStore(t *testing.T) *testStore {
+type sessionValues map[interface{}]interface{}
+
+func newTestStore(t *testing.T, values sessionValues) *testStore {
 	ts := &testStore{}
 	sess, err := ts.New(nil, ts.Name())
 	assert.NoError(t, err)
 	err = ts.Save(nil, nil, sess)
 	assert.NoError(t, err)
+	ts.s.Values = values
 	return ts
 }
 
