@@ -1,5 +1,12 @@
 # Notable Changes to Sohop
 
+### 2017-03-13
+
+Switched ACME support to use `golang.org/x/crypto/acme/autocert`.  There should
+be no configuration changes required.  Since there are now individual certs for
+each subdomain, and since I trust autocert to reprovision should they expire,
+I've disabled the cert check from the health check endpoint when using Acme.
+
 ### 2016-04-27
 
 Added support for ACME / Let's Encrypt.  Replace your TLS config with an ACME
