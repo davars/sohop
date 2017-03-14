@@ -121,28 +121,23 @@ func (s Server) Run() {
 				domains = append(domains, fmt.Sprintf("%s.%s", subdomain, s.Config.Domain))
 			}
 
-			s.Config.Acme.Address = s.HTTPSAddr
 			s.Config.Acme.Domains = domains
 
-			w, err := s.Config.Acme.Wrapper()
+			m, err := s.Config.Acme.Manager()
 			check(err)
 
-			s.Config.TLS.CertFile = w.Config.TLSCertFile
-			s.Config.TLS.CertKey = w.Config.TLSKeyFile
+			tlsConfig := &tls.Config{
+				GetCertificate: m.GetCertificate,
+				NextProtos:     []string{"h2"},
+			}
 
-			tlsConfig := w.TLSConfig()
-
-			listener, err := tls.Listen("tcp", s.HTTPSAddr, tlsConfig)
-			check(err)
-
-			// To enable http2, we need http.Server to have reference to tlsconfig
-			// https://github.com/golang/go/issues/14374
 			server := &http.Server{
 				Addr:      s.HTTPSAddr,
 				Handler:   s.handler(),
 				TLSConfig: tlsConfig,
 			}
-			err = server.Serve(listener)
+
+			err = server.ListenAndServeTLS("", "")
 			check(err)
 		}
 	}()

@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"context"
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
@@ -41,19 +43,20 @@ func (ga GithubAuth) OAuthConfig() *oauth2.Config {
 // Auth is implemented so GithubAuth satisfies the Auther interface.
 func (ga GithubAuth) Auth(code string) (string, error) {
 	oauthConfig := ga.OAuthConfig()
+	ctx, _ := context.WithTimeout(context.Background(), time.Minute)
 
-	tok, err := oauthConfig.Exchange(oauth2.NoContext, code)
+	tok, err := oauthConfig.Exchange(ctx, code)
 	if err != nil {
 		return "", err
 	}
 
-	client := github.NewClient(oauthConfig.Client(oauth2.NoContext, tok))
-	user, _, err := client.Users.Get("")
+	client := github.NewClient(oauthConfig.Client(ctx, tok))
+	user, _, err := client.Users.Get(ctx, "")
 	if err != nil {
 		return "", err
 	}
 
-	orgs, _, err := client.Organizations.List("", nil)
+	orgs, _, err := client.Organizations.List(ctx, "", nil)
 	if err != nil {
 		return "", err
 	}

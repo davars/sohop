@@ -3,22 +3,16 @@
 package acme
 
 import (
-	"crypto/sha1"
-	"fmt"
-	"io"
 	"log"
-	"net/url"
-	"os"
 	"path"
-	"sort"
-	"strings"
 
-	"github.com/dkumor/acmewrapper"
+	"golang.org/x/crypto/acme"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 // newTOSCallback returns an acmewrapper.TOSCallback that returns true IFF the agreementURL is contained in the
 // agreedTo slice
-func newTOSCallback(agreedTo []string) acmewrapper.TOSCallback {
+func newTOSCallback(agreedTo []string) func(string) bool {
 	return func(agreementURL string) bool {
 		log.Printf("Checking if agreement %q is agreed to", agreementURL)
 		for _, url := range agreedTo {
@@ -44,7 +38,7 @@ type Config struct {
 	// DataPath is the path where files (registration, registration private key,
 	// cert, and cert key) should be stored.
 	//
-	// All files are stored under <DataPath>/<ACME server host>/<account email>/.
+	// All files are stored under <DataPath>/autocert.
 	DataPath string
 
 	// Domains are the domains for which should be added to provisioned
@@ -52,39 +46,15 @@ type Config struct {
 	// a hash of this collection so that new certificates are provisioned
 	// if the list of domains changes.
 	Domains []string
-
-	// Address is the address the server is listening on.  Set automatically.
-	Address string `json:"-"`
 }
 
-// Wrapper returns an AcmeWrapper for this Config
-func (c Config) Wrapper() (*acmewrapper.AcmeWrapper, error) {
-	u, err := url.Parse(c.Server)
-	if err != nil {
-		return nil, err
-	}
-
-	regPath := path.Join(c.DataPath, u.Host, c.Email)
-	err = os.MkdirAll(regPath, 0700)
-	if err != nil {
-		return nil, err
-	}
-
-	sort.Strings(c.Domains)
-	h := sha1.New()
-	io.WriteString(h, strings.Join(c.Domains, "-"))
-	domainHash := fmt.Sprintf("%x", h.Sum(nil))[0:10]
-
-	return acmewrapper.New(acmewrapper.Config{
-		Server:           c.Server,
-		Email:            c.Email,
-		TOSCallback:      newTOSCallback(c.TOS),
-		RegistrationFile: path.Join(regPath, "registration.pem"),
-		PrivateKeyFile:   path.Join(regPath, "private_key.pem"),
-
-		Address:     c.Address,
-		Domains:     c.Domains,
-		TLSCertFile: path.Join(regPath, fmt.Sprintf("cert-%s.pem", domainHash)),
-		TLSKeyFile:  path.Join(regPath, fmt.Sprintf("key-%s.pem", domainHash)),
-	})
+// Manager returns an *autocert.Manager for this Config
+func (c Config) Manager() (*autocert.Manager, error) {
+	return &autocert.Manager{
+		Prompt:     newTOSCallback(c.TOS),
+		HostPolicy: autocert.HostWhitelist(c.Domains...),
+		Cache:      autocert.DirCache(path.Join(c.DataPath, "autocert")),
+		Email:      c.Email,
+		Client:     &acme.Client{DirectoryURL: c.Server},
+	}, nil
 }

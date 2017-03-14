@@ -1,12 +1,14 @@
 package auth
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"reflect"
 	"regexp"
 	"strings"
+	"time"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -70,8 +72,9 @@ type googleIDToken struct {
 // Auth is implemented so GoogleAuth satisfies the Auther interface.
 func (ga GoogleAuth) Auth(code string) (string, error) {
 	oauthConfig := ga.OAuthConfig()
+	ctx, _ := context.WithTimeout(context.Background(), time.Minute)
 
-	token, err := oauthConfig.Exchange(oauth2.NoContext, code)
+	token, err := oauthConfig.Exchange(ctx, code)
 	if err != nil {
 		return "", err
 	}
