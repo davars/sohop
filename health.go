@@ -77,48 +77,53 @@ func (s Server) performCheck() {
 		}()
 	}
 
-	certResponse := make(map[string]interface{}, 5)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		data, err := ioutil.ReadFile(s.Config.TLS.CertFile)
-		if err != nil {
-			certResponse["ok"] = false
-			certResponse["error"] = err.Error()
-			return
-		}
-		notBefore, notAfter, err := certValidity(data)
-		if err != nil {
-			certResponse["ok"] = false
-			certResponse["error"] = err.Error()
-			return
-		}
+	var certResponse map[string]interface{}
+	if s.Config.TLS.CertFile != "" {
+		certResponse = make(map[string]interface{}, 5)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			data, err := ioutil.ReadFile(s.Config.TLS.CertFile)
+			if err != nil {
+				certResponse["ok"] = false
+				certResponse["error"] = err.Error()
+				return
+			}
+			notBefore, notAfter, err := certValidity(data)
+			if err != nil {
+				certResponse["ok"] = false
+				certResponse["error"] = err.Error()
+				return
+			}
 
-		certResponse["expires_at"] = notAfter
-		now := time.Now()
-		if !notBefore.Before(now) {
-			certResponse["error"] = "not yet valid"
-			certResponse["valid_at"] = notBefore
-			certResponse["ok"] = false
-		} else if !notAfter.After(now) {
-			certResponse["error"] = "expired"
-			certResponse["ok"] = false
-		} else if !notAfter.Add(-1 * certWarning).After(now) {
-			certResponse["expires_in"] = notAfter.Sub(now).String()
-			certResponse["error"] = "expires soon"
-			certResponse["ok"] = false
-		} else {
-			certResponse["ok"] = true
-		}
-	}()
+			certResponse["expires_at"] = notAfter
+			now := time.Now()
+			if !notBefore.Before(now) {
+				certResponse["error"] = "not yet valid"
+				certResponse["valid_at"] = notBefore
+				certResponse["ok"] = false
+			} else if !notAfter.After(now) {
+				certResponse["error"] = "expired"
+				certResponse["ok"] = false
+			} else if !notAfter.Add(-1 * certWarning).After(now) {
+				certResponse["expires_in"] = notAfter.Sub(now).String()
+				certResponse["error"] = "expires soon"
+				certResponse["ok"] = false
+			} else {
+				certResponse["ok"] = true
+			}
+		}()
+	}
 
 	wg.Wait()
 
-	allOk = allOk && certResponse["ok"].(bool)
+	if certResponse != nil {
+		allOk = allOk && certResponse["ok"].(bool)
+	}
 
 	res, err := json.MarshalIndent(struct {
 		Upstreams map[string]healthStatus `json:"upstreams"`
-		Cert      map[string]interface{}  `json:"cert"`
+		Cert      map[string]interface{}  `json:"cert,omitempty"`
 	}{
 		Upstreams: responses,
 		Cert:      certResponse,
