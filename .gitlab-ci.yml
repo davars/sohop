@@ -1,8 +1,10 @@
-image: golang:1.7
+image: golang:1.8
 
 test:
   script:
   - mkdir -p $GOPATH/src/github.com/davars
   - cp -a . $GOPATH/src/github.com/davars/sohop
-  - go get -t -v github.com/davars/sohop...
-  - go test github.com/davars/sohop...
+  - cd $GOPATH/src/github.com/davars/sohop
+  - go get -u github.com/golang/dep/...
+  - dep ensure
+  - go test $(go list ./... | grep -v /vendor/)
