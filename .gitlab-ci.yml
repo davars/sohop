@@ -2,9 +2,9 @@ image: golang:1.8
 
 test:
   script:
-  - mkdir -p $GOPATH/src/github.com/davars
-  - cp -a . $GOPATH/src/github.com/davars/sohop
-  - cd $GOPATH/src/github.com/davars/sohop
   - go get -u github.com/golang/dep/...
+  - mkdir -p $GOPATH/src/github.com/davars
+  - cp -a /builds/davars/sohop $GOPATH/src/github.com/davars/sohop
+  - cd $GOPATH/src/github.com/davars/sohop
   - dep ensure
   - go test $(go list ./... | grep -v /vendor/)
