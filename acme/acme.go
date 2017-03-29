@@ -1,5 +1,4 @@
-// Package acme uses https://github.com/dkumor/acmewrapper to automatically
-// provision TLS certificates.
+// Package acme uses golang.org/x/crypto/acme/autocert to automatically provision TLS certificates.
 package acme
 
 import (
@@ -10,7 +9,7 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 )
 
-// newTOSCallback returns an acmewrapper.TOSCallback that returns true IFF the agreementURL is contained in the
+// newTOSCallback returns a function that returns true IFF the agreementURL is contained in the
 // agreedTo slice
 func newTOSCallback(agreedTo []string) func(string) bool {
 	return func(agreementURL string) bool {
@@ -24,7 +23,7 @@ func newTOSCallback(agreedTo []string) func(string) bool {
 	}
 }
 
-// Config contains the variables required for AcmeWrapper
+// Config contains the variables required for autocert
 type Config struct {
 	// Server is the ACME server to use
 	Server string
