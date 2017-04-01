@@ -5,6 +5,11 @@
 Deprecated flags `certFile` and `certKey` were removed.  These values are now
 set in the config file.
 
+Also, the cookie secret is half the length it used to be due to a change in 
+the encryption library used.  Running sohop with your old key will cause sohop
+to complain and generate a new 64-character hex-encoded secret using 
+`crypto/rand`.
+
 ### 2017-03-13
 
 Switched ACME support to use `golang.org/x/crypto/acme/autocert`.  There should
