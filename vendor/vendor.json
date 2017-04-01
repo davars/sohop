@@ -27,7 +27,7 @@
 			"revisionTime": "2017-02-23T02:47:09Z"
 		},
 		{
-			"checksumSHA1": "OFu4xJEIjiI8Suu+j/gabfp+y6Q=",
+			"checksumSHA1": "wyfoHgIewGlLGR6xMMuZ9hKr1OQ=",
 			"origin": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",
 			"path": "github.com/davecgh/go-spew/spew",
 			"revision": "4d4bfba8f1d1027c4fdbe371823030df51419987",
@@ -40,7 +40,7 @@
 			"revisionTime": "2017-03-07T00:15:33Z"
 		},
 		{
-			"checksumSHA1": "kBeNcaKk56FguvPSUCEaH6AxpRc=",
+			"checksumSHA1": "q3Bc7JpLWBqhZ4M7oreGo34RSkc=",
 			"path": "github.com/golang/protobuf/proto",
 			"revision": "c9c7427a2a70d2eb3bafa0ab2dc163e45f143317",
 			"revisionTime": "2017-03-07T00:15:33Z"
@@ -60,6 +60,12 @@
 		{
 			"checksumSHA1": "8gDNKfvEupesDdOCXio3AK/XVaA=",
 			"path": "github.com/golang/protobuf/ptypes/duration",
+			"revision": "c9c7427a2a70d2eb3bafa0ab2dc163e45f143317",
+			"revisionTime": "2017-03-07T00:15:33Z"
+		},
+		{
+			"checksumSHA1": "9wOTz0iWfOSTSTmUkoq0WYkiMdY=",
+			"path": "github.com/golang/protobuf/ptypes/empty",
 			"revision": "c9c7427a2a70d2eb3bafa0ab2dc163e45f143317",
 			"revisionTime": "2017-03-07T00:15:33Z"
 		},
@@ -149,13 +155,13 @@
 			"revisionTime": "2017-01-24T01:46:54Z"
 		},
 		{
-			"checksumSHA1": "jyP8QOzvouqRy4o3MKNjBl/K3o8=",
+			"checksumSHA1": "w0exn2RCYoIEjE0SXyDjfAlpWIA=",
 			"path": "golang.org/x/crypto/poly1305",
 			"revision": "728b753d0135da6801d45a38e6f43ff55779c5c2",
 			"revisionTime": "2017-01-24T01:46:54Z"
 		},
 		{
-			"checksumSHA1": "w8PESKJweP+BCAxCYPU1QC08qUU=",
+			"checksumSHA1": "eN6qQZ8zw3N4v1keW4IUCKRsZWk=",
 			"path": "golang.org/x/crypto/salsa20/salsa",
 			"revision": "728b753d0135da6801d45a38e6f43ff55779c5c2",
 			"revisionTime": "2017-01-24T01:46:54Z"
@@ -209,7 +215,7 @@
 			"revisionTime": "2017-03-08T20:54:49Z"
 		},
 		{
-			"checksumSHA1": "Zt7DIRCaUg5qfhfxyR1wCA+EjCE=",
+			"checksumSHA1": "nJGYSAwWAjkslNuv7w6yvmjf2K8=",
 			"path": "golang.org/x/oauth2",
 			"revision": "1611bb46e67abc64a71ecc5c3ae67f1cbbc2b921",
 			"revisionTime": "2017-03-13T19:46:53Z"
@@ -221,7 +227,7 @@
 			"revisionTime": "2017-03-13T19:46:53Z"
 		},
 		{
-			"checksumSHA1": "ma8yoPKIsJlRiVBDUEdX78kyAdU=",
+			"checksumSHA1": "spKKklhjqvogHnodJY/0KwhIIv0=",
 			"path": "golang.org/x/oauth2/google",
 			"revision": "1611bb46e67abc64a71ecc5c3ae67f1cbbc2b921",
 			"revisionTime": "2017-03-13T19:46:53Z"
