@@ -1,0 +1,35 @@
+{
+  "Domain": "example.com",
+  "Cookie": {
+    "Name": "exampleauth",
+    "Secret": "3c0767ada2466a92a59c1214061441713aeafe6d115e29aa376c0f9758cdf0f5"
+  },
+  "Auth" : {
+    "Type": "mock",
+    "Config": {
+      "ClientID": "12345678",
+      "ClientSecret": "12345678",
+      "User": "mockuser"
+    }
+  },
+  "TLS": {
+    "CertFile": "fixtures/cert.pem",
+    "CertKey": "fixtures/key.pem"
+  },
+  "Upstreams": {
+    "intranet": {
+      "URL": "http://127.0.0.1:8888",
+      "HealthCheck": "http://127.0.0.1:8888/login",
+      "WebSocket": "ws://127.0.0.1:8888",
+      "Auth": true,
+      "Headers": { "X-WEBAUTH-USER":["{{.Session.Values.user}}"] }
+    },
+    "public": {
+      "URL": "http://127.0.0.1:8111",
+      "HealthCheck": "http://127.0.0.1:8111/login.html",
+      "WebSocket": "ws://127.0.0.1:8111",
+      "Headers": { "X-FOO":["{{.Session.Values.foo}}"] },
+      "Auth": false
+    }
+  }
+}

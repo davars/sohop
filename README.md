@@ -55,7 +55,7 @@ Usage of sohop:
   "Domain": "example.com",
   "Cookie": {
     "Name": "exampleauth",
-    "Secret": "27e21c8d866594bd446c4a509d890ce2f59dcb26d89751b77ca236e5be3e0d7c26532a60e1ed9fd4f7b924e363d64e7a44a56dd57d84cf34eb7f0db0e19889f5"
+    "Secret": "3c0767ada2466a92a59c1214061441713aeafe6d115e29aa376c0f9758cdf0f5"
   },  
   "Auth" : {
     "Type": "github-org",

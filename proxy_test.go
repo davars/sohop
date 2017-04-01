@@ -30,6 +30,7 @@ func TestProxy(t *testing.T) {
 	sohop := Server{
 		Config: &Config{
 			Domain: "example.com",
+			Cookie: CookieConfig{Secret: "3c0767ada2466a92a59c1214061441713aeafe6d115e29aa376c0f9758cdf0f5"},
 			Upstreams: map[string]UpstreamConfig{
 				upstreamName: {
 					URL: server.URL,

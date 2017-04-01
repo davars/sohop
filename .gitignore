@@ -2,4 +2,4 @@
 *.iml
 .tmp/
 .vscode/
-vendor/
+vendor/*/

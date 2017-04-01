@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package state;
+
+import "google/protobuf/timestamp.proto";
+
+// TimeBox wraps byte string payload with an expiration date
+message TimeBox {
+    google.protobuf.Timestamp not_after = 1;
+    bytes payload = 2;
+}
+
+// OAuthState contains data associated with a single oauth flow (currently just the url to redirect the user to after
+// authentication completes)
+message OAuthState {
+    string redirect_url = 1;
+}
+
+// Session contains data associated with a single user: who that user is and whether they're authenticated & authorized
+message Session {
+    string user = 1;
+    google.protobuf.Timestamp expires_at = 2;
+    bool authorized = 3;
+}

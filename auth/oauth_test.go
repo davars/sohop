@@ -1,12 +1,17 @@
 package auth
 
 import (
+	"crypto/md5"
+	"encoding/base64"
+	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
 	"testing"
 
-	"github.com/gorilla/sessions"
+	"github.com/davars/sohop/state"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/oauth2"
@@ -82,15 +87,15 @@ func TestNewAuther(t *testing.T) {
 
 func TestMiddleware(t *testing.T) {
 	tests := map[string]struct {
-		values            sessionValues
+		session           *state.Session
 		expectsNextCalled bool
 	}{
 		"no auth": {
-			values:            sessionValues{},
+			session:           &state.Session{},
 			expectsNextCalled: false,
 		},
 		"auth": {
-			values:            sessionValues{authorizedKey: true},
+			session:           &state.Session{Authorized: true},
 			expectsNextCalled: true,
 		},
 	}
@@ -101,9 +106,9 @@ func TestMiddleware(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Log(name)
 
-			ts := newTestStore(t, test.values)
+			ts := newTestStore(t, test.session, map[string]*state.OAuthState{})
 			nextCalled := false
-			handler := Middleware(ts, auther)(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			handler := Middleware(auther, ts)(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 				t.Log("next handler called")
 				nextCalled = true
 			}))
@@ -115,12 +120,16 @@ func TestMiddleware(t *testing.T) {
 					t.Errorf("nextCalled: got %t, want %t", nextCalled, test.expectsNextCalled)
 				}
 			} else {
-				url := resp.Request.URL.String()
-				if url != ts.s.Values[redirectURLKey].(string) {
-					t.Errorf("redirectURL: got %q, want %q", ts.s.Values[redirectURLKey], url)
-				}
+				loc, err := resp.Location()
+				assert.NoError(t, err)
 
-				assertRedirectedTo(t, resp, auther.OAuthConfig().AuthCodeURL(ts.s.Values[stateKey].(string), oauth2.AccessTypeOffline))
+				key := loc.Query().Get("state")
+				url := resp.Request.URL.String()
+				redirectURL := ts.oauthStates[key].RedirectUrl
+				if url != redirectURL {
+					t.Errorf("redirectURL: got %q, want %q", redirectURL, url)
+				}
+				assertRedirectedTo(t, resp, auther.OAuthConfig().AuthCodeURL(key, oauth2.AccessTypeOffline))
 			}
 		})
 	}
@@ -130,11 +139,10 @@ func TestHandler(t *testing.T) {
 	auther := newMockAuther("")
 	redirectURL := "https://some.other/place"
 
-	ts := newTestStore(t, sessionValues{
-		stateKey:       "testing",
-		redirectURLKey: redirectURL,
+	ts := newTestStore(t, nil, map[string]*state.OAuthState{
+		"testing": {RedirectUrl: redirectURL},
 	})
-	handler := Handler(ts, auther)
+	handler := Handler(auther, ts)
 	resp := callHandler(t, handler, "/foo?code=42&state=testing")
 	url, err := resp.Location()
 	require.NoError(t, err)
@@ -145,43 +153,50 @@ func newMockAuther(err string) Auther {
 	return &MockAuth{ClientID: "id", ClientSecret: "secret", User: "user", Err: err}
 }
 
-// a testStore implements store.Namer (which itself embeds sessions.Store), that uses the same session object for all
+// a testStore implements store.Namer (which itself embeds sessions.Config), that uses the same session object for all
 // operations.  Useful for writing tests for things that manipulate sessions.
 type testStore struct {
-	s *sessions.Session
+	session     *state.Session
+	oauthStates map[string]*state.OAuthState
 }
 
-func (ts *testStore) Name() string {
-	return "test"
-}
-
-func (ts *testStore) Get(r *http.Request, name string) (*sessions.Session, error) {
-	if ts.s == nil {
-		return ts.New(r, name)
+func (ts *testStore) GetSession(req *http.Request) (session *state.Session) {
+	if ts.session == nil {
+		ts.session = &state.Session{}
 	}
-	return ts.s, nil
+	return ts.session
 }
 
-func (ts *testStore) New(r *http.Request, name string) (*sessions.Session, error) {
-	ts.s = sessions.NewSession(ts, ts.Name())
-	return ts.s, nil
-}
-
-func (ts *testStore) Save(r *http.Request, w http.ResponseWriter, s *sessions.Session) error {
-	ts.s = s
+func (ts *testStore) Authorize(rw http.ResponseWriter, req *http.Request, user string) error {
+	ts.session.Authorized = true
+	ts.session.User = user
 	return nil
 }
 
-type sessionValues map[interface{}]interface{}
+func (ts *testStore) IsAuthorized(req *http.Request) bool {
+	return ts.GetSession(req).Authorized
+}
 
-func newTestStore(t *testing.T, values sessionValues) *testStore {
-	ts := &testStore{}
-	sess, err := ts.New(nil, ts.Name())
-	assert.NoError(t, err)
-	err = ts.Save(nil, nil, sess)
-	assert.NoError(t, err)
-	ts.s.Values = values
-	return ts
+func (ts *testStore) CreateState(rw http.ResponseWriter, redirectURL string) (string, error) {
+	h := md5.New()
+	io.WriteString(h, redirectURL)
+	key := base64.RawURLEncoding.EncodeToString(h.Sum(nil))
+	ts.oauthStates[key] = &state.OAuthState{RedirectUrl: redirectURL}
+	return key, nil
+}
+
+func (ts *testStore) RedeemState(rw http.ResponseWriter, req *http.Request, stateKey string) (string, error) {
+	if state, ok := ts.oauthStates[stateKey]; ok {
+		return state.RedirectUrl, nil
+	}
+	return "", fmt.Errorf("not found")
+}
+
+func newTestStore(t *testing.T, session *state.Session, oauthState map[string]*state.OAuthState) *testStore {
+	return &testStore{
+		session:     session,
+		oauthStates: oauthState,
+	}
 }
 
 // noRedirectClient return an *http.Client that never follows redirects

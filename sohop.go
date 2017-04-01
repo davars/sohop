@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"log"
 	"math"
 	"math/big"
@@ -15,19 +16,19 @@ import (
 
 	"github.com/davars/sohop/acme"
 	"github.com/davars/sohop/auth"
-	"github.com/davars/sohop/store"
+	"github.com/davars/sohop/state"
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/gorilla/mux"
-	"github.com/gorilla/securecookie"
 )
 
-// A Config can be used to set up a sohop proxy
+// A cookieStore can be used to set up a sohop proxy
 type Config struct {
 	// Domain is the domain to which the subdomains belong. Also used as the
 	// domain for the session cookie.
 	Domain string
 
 	// Upstreams is an array of configurations for upstream servers.  Keys are
-	// the subdomain to proxy to the configured server.  Values describe
+	// the subdomain to proxy to the configured server.  GetSession describe
 	// various aspects of the upstream server.
 	Upstreams map[string]UpstreamConfig
 
@@ -81,9 +82,9 @@ type Server struct {
 	HTTPAddr  string
 	HTTPSAddr string
 
-	proxy  http.Handler
-	store  store.Namer
-	health *healthReport
+	proxy       http.Handler
+	health      *healthReport
+	storeConfig state.Store
 }
 
 func check(err error) {
@@ -95,9 +96,6 @@ func check(err error) {
 // Run bootstraps the listeners then waits forever.
 func (s Server) Run() {
 	var err error
-
-	s.store, err = s.Config.namer()
-	check(err)
 
 	go func() {
 		s.health = &healthReport{}
@@ -170,13 +168,13 @@ type UpstreamConfig struct {
 	// WebSocket is a ws:// or wss:// URL receive proxied WebSocket connections.
 	WebSocket string
 
-	// Headers can be used to replace the headers of an incomping request
+	// Headers can be used to replace the headers of an incoming request
 	// before it is sent upstream.  The values are templates, evaluated with the
 	// current session available as `.Session`.
 	Headers http.Header
 }
 
-func (c *Config) namer() (store.Namer, error) {
+func (c *Config) storeConfig() state.Store {
 	if c.Cookie.Name == "" {
 		n, err := rand.Int(rand.Reader, big.NewInt(math.MaxInt64))
 		if err != nil {
@@ -185,9 +183,17 @@ func (c *Config) namer() (store.Namer, error) {
 		c.Cookie.Name = fmt.Sprintf("_s%d", n)
 	}
 	if c.Cookie.Secret == "" {
-		c.Cookie.Secret = hex.EncodeToString(securecookie.GenerateRandomKey(64))
+		var key [32]byte
+		if _, err := io.ReadFull(rand.Reader, key[:]); err != nil {
+			panic(err) // don't want to continue encrypting anything
+		}
+		c.Cookie.Secret = hex.EncodeToString(key[:])
 	}
-	return store.New(c.Cookie.Name, c.Cookie.Secret, c.Domain)
+	conf, err := state.New(c.Cookie.Name, c.Cookie.Secret, c.Domain)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return conf
 }
 
 func (c *Config) checkTLS() {
@@ -216,14 +222,14 @@ func (s Server) handler() http.Handler {
 
 	conf := s.Config
 	oauthRouter := router.Host(fmt.Sprintf("oauth.%s", conf.Domain)).Subrouter()
-	auther := conf.auther()
-	oauthRouter.Path("/authorized").Handler(auth.Handler(s.store, auther))
-	authenticating := auth.Middleware(s.store, auther)
 
-	// TODO: switch to JWT so that this isn't necessary
+	auther := conf.auther()
+	s.storeConfig = conf.storeConfig()
+	oauthRouter.Path("/authorized").Handler(auth.Handler(auther, s.storeConfig))
+	authenticating := auth.Middleware(auther, s.storeConfig)
+
 	oauthRouter.Path("/session").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, _ := s.store.Get(r, s.store.Name())
-		fmt.Fprintf(w, "%v", session.Values)
+		(&jsonpb.Marshaler{Indent: "  "}).Marshal(w, s.storeConfig.GetSession(r))
 	})
 
 	healthRouter := router.Host(fmt.Sprintf("health.%s", conf.Domain)).Subrouter()

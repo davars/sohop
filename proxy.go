@@ -10,7 +10,6 @@ import (
 	"text/template"
 
 	"github.com/gorilla/mux"
-	"github.com/gorilla/sessions"
 	"github.com/yhat/wsutil"
 )
 
@@ -63,6 +62,14 @@ func (c *Config) createUpstreams() (map[string]upstream, error) {
 	return m, nil
 }
 
+type Session struct {
+	Values map[string]string
+}
+
+type TemplateData struct {
+	Session struct{ Values map[string]string }
+}
+
 // ProxyHandler selects the appropriate upstream based on subdomain of the
 // incoming request and does the proxying.
 func (s Server) ProxyHandler() http.Handler {
@@ -78,12 +85,14 @@ func (s Server) ProxyHandler() http.Handler {
 		}
 
 		if len(upstream.headerTemplates) > 0 {
-			session, _ := s.store.Get(r, s.store.Name())
 			for k, vs := range upstream.headerTemplates {
 				r.Header.Del(k)
+				session := s.storeConfig.GetSession(r)
 				for _, v := range vs {
 					buf := &bytes.Buffer{}
-					err := v.Execute(buf, struct{ Session *sessions.Session }{Session: session})
+					err := v.Execute(buf, TemplateData{
+						Session: Session{Values: map[string]string{"user": session.User}},
+					})
 					if err != nil {
 						http.Error(w, err.Error(), http.StatusInternalServerError)
 						return
