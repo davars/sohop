@@ -1,5 +1,10 @@
 # Notable Changes to Sohop
 
+### 2017-04-01
+
+Deprecated flags `certFile` and `certKey` were removed.  These values are now
+set in the config file.
+
 ### 2017-03-13
 
 Switched ACME support to use `golang.org/x/crypto/acme/autocert`.  There should
