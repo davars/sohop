@@ -1,8 +1,0 @@
-image: golang:1.9
-
-test:
-  script:
-  - mkdir -p $GOPATH/src/github.com/davars
-  - ln -s /builds/davars/sohop $GOPATH/src/github.com/davars/sohop
-  - cd $GOPATH/src/github.com/davars/sohop
-  - go test ./...
