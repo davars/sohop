@@ -1,6 +1,6 @@
 # sohop
 [![GoDoc](https://godoc.org/github.com/davars/sohop?status.svg)](https://godoc.org/github.com/davars/sohop)
-[![build status](https://gitlab.com/davars/sohop/badges/master/build.svg)](https://gitlab.com/davars/sohop/builds)
+[![Build Status](https://travis-ci.org/davars/sohop.svg?branch=master)](https://travis-ci.org/davars/sohop)
 [![report card](https://goreportcard.com/badge/github.com/davars/sohop)](https://goreportcard.com/report/github.com/davars/sohop)
 
 This program is a reverse proxy that can optionally restrict access to users authenticated with OAuth (currently
