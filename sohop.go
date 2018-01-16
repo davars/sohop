@@ -19,6 +19,7 @@ import (
 	"github.com/davars/sohop/state"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/gorilla/mux"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 // A cookieStore can be used to set up a sohop proxy
@@ -105,25 +106,27 @@ func (s Server) Run() {
 		}
 	}()
 
+	var m *autocert.Manager
+	if s.Config.Acme != nil {
+		domains := make([]string, 0, len(s.Config.Upstreams)+2)
+		for _, subdomain := range []string{"oauth", "health"} {
+			domains = append(domains, fmt.Sprintf("%s.%s", subdomain, s.Config.Domain))
+		}
+		for subdomain := range s.Config.Upstreams {
+			domains = append(domains, fmt.Sprintf("%s.%s", subdomain, s.Config.Domain))
+		}
+
+		s.Config.Acme.Domains = domains
+
+		m, err = s.Config.Acme.Manager()
+		check(err)
+	}
 	go func() {
-		if s.Config.Acme == nil {
+		if m == nil {
 			s.Config.checkTLS()
 			err = http.ListenAndServeTLS(s.HTTPSAddr, s.Config.TLS.CertFile, s.Config.TLS.CertKey, s.handler())
 			check(err)
 		} else {
-			domains := make([]string, 0, len(s.Config.Upstreams)+2)
-			for _, subdomain := range []string{"oauth", "health"} {
-				domains = append(domains, fmt.Sprintf("%s.%s", subdomain, s.Config.Domain))
-			}
-			for subdomain := range s.Config.Upstreams {
-				domains = append(domains, fmt.Sprintf("%s.%s", subdomain, s.Config.Domain))
-			}
-
-			s.Config.Acme.Domains = domains
-
-			m, err := s.Config.Acme.Manager()
-			check(err)
-
 			tlsConfig := &tls.Config{
 				GetCertificate: m.GetCertificate,
 				NextProtos:     []string{"h2"},
@@ -138,15 +141,21 @@ func (s Server) Run() {
 			err = server.ListenAndServeTLS("", "")
 			check(err)
 		}
+
 	}()
 	go func() {
-		err := http.ListenAndServe(s.HTTPAddr,
-			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				r.URL.Scheme = "https"
-				r.URL.Host = r.Host + s.HTTPSAddr
-				http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
-				return
-			}))
+		var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r.URL.Scheme = "https"
+			r.URL.Host = r.Host + s.HTTPSAddr
+			http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
+			return
+		})
+
+		if m != nil {
+			handler = m.HTTPHandler(handler)
+		}
+
+		err := http.ListenAndServe(s.HTTPAddr, handler)
 		check(err)
 	}()
 	select {}
