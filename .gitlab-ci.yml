@@ -1,10 +1,8 @@
-image: golang:1.8
+image: golang:1.9
 
 test:
   script:
   - mkdir -p $GOPATH/src/github.com/davars
   - ln -s /builds/davars/sohop $GOPATH/src/github.com/davars/sohop
   - cd $GOPATH/src/github.com/davars/sohop
-  - go get -u github.com/kardianos/govendor
-  - govendor sync -v
-  - go test $(go list ./... | grep -v /vendor/)
+  - go test ./...
