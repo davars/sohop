@@ -78,7 +78,7 @@ func TestCookieStore_Session(t *testing.T) {
 	}
 	sealed := strings.Replace(strings.Split(cookie, ";")[0], "test=", "", 1)
 	session := &Session{}
-	assert.True(t, store.(*cookieStore).boxer.open(sealed, session))
+	assert.True(t, store.(*cookieStore).boxer.Open(sealed, session))
 	assert.True(t, session.Authorized)
 	assert.Equal(t, userName, session.User)
 }
@@ -103,7 +103,7 @@ func TestCookieStore_State(t *testing.T) {
 	}
 	sealed := stateKey + strings.Replace(strings.Split(cookie, ";")[0], stateKey+"=", "", 1)
 	oauthState := &OAuthState{}
-	assert.True(t, store.(*cookieStore).boxer.open(sealed, oauthState))
+	assert.True(t, store.(*cookieStore).boxer.Open(sealed, oauthState))
 	assert.Equal(t, redirectURL, oauthState.RedirectUrl)
 
 	req, err := http.NewRequest("GET", "http://example.com", nil)
