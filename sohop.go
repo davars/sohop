@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"encoding/hex"
 	"fmt"
+	"html/template"
 	"io"
 	"log"
 	"math"
@@ -225,6 +226,19 @@ func (c *Config) auther() auth.Auther {
 	return a
 }
 
+var authorizedTemplate = template.Must(template.New("").Parse(`
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="UTF-8">
+	<title>Authorized</title>
+	</head>
+	<body>
+		<p>Authorized.  Continue to <a href="{{.}}">{{.}}</a>?</p>
+	</body>
+</html>
+`))
+
 func (s Server) handler() http.Handler {
 	router := mux.NewRouter()
 	router.NotFoundHandler = http.HandlerFunc(notFound)
@@ -240,6 +254,19 @@ func (s Server) handler() http.Handler {
 	oauthRouter.Path("/session").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		(&jsonpb.Marshaler{Indent: "  "}).Marshal(w, s.storeConfig.GetSession(r))
 	})
+
+	oauthRouter.Path("/auth").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if s.storeConfig.IsAuthorized(r) {
+			w.WriteHeader(http.StatusNoContent)
+		} else {
+			w.WriteHeader(http.StatusUnauthorized)
+		}
+	})
+
+	oauthRouter.Path("/signin").Queries("rd", "{rd}").Handler(authenticating(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		rd := mux.Vars(r)["rd"]
+		authorizedTemplate.Execute(w, rd)
+	})))
 
 	healthRouter := router.Host(fmt.Sprintf("health.%s", conf.Domain)).Subrouter()
 	healthRouter.Path("/check").Handler(s.HealthHandler())
