@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package timebox;
+
+import "google/protobuf/timestamp.proto";
+
+// TimeBox wraps byte string payload with an expiration date
+message TimeBox {
+    google.protobuf.Timestamp not_after = 1;
+    bytes payload = 2;
+}
