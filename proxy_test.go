@@ -2,6 +2,7 @@ package sohop
 
 import (
 	"crypto/tls"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -65,4 +66,5 @@ func TestProxy(t *testing.T) {
 	b, err := ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.Equal(t, upstreamName, string(b))
+	require.NoError(t, fmt.Errorf("break a test"))
 }
