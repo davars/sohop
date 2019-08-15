@@ -114,22 +114,6 @@ The config file id unmarshalled into a sohop.Config struct, described here: http
 go test ./...
 ```
 
-## Roadmap
-
-- [x] Docs
-- [x] Tests
-- [x] Google Auth (email regex)
-- [x] Let's Encrypt provision / renewal
-- [ ] Google Auth (Apps domain) (needs advocate)
-- [ ] Google Auth (groups) (needs advocate)
-
-## Rant
-
-There seems to be a trend where all config file formats trend towards Turing-completeness over time.  Life is too short for
-understanding the directives of yet another arbitrary config file format, and still not being free from having to
-patch the software anyway when it falls just short of your needs.  I'd rather have all of Go available to me when
-'configuring' my web server so that I can perform truly arbitrary processing on requests.
-
 ## Contributing ##
 
 Contributions welcome! Please fork the repository and open a pull request
