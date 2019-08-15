@@ -114,15 +114,6 @@ The config file id unmarshalled into a sohop.Config struct, described here: http
 go test ./...
 ```
 
-## Roadmap
-
-- [x] Docs
-- [x] Tests
-- [x] Google Auth (email regex)
-- [x] Let's Encrypt provision / renewal
-- [ ] Google Auth (Apps domain) (needs advocate)
-- [ ] Google Auth (groups) (needs advocate)
-
 ## Contributing ##
 
 Contributions welcome! Please fork the repository and open a pull request
