@@ -27,7 +27,7 @@ type GithubAuth struct {
 
 	// OrgID is the ID of the org whose members are authorized. Run
 	// `curl https://api.github.com/orgs/:org` to get the id.
-	OrgID int
+	OrgID int64
 }
 
 // OAuthConfig is implemented so GithubAuth satisfies the Auther interface.
