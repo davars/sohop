@@ -1,6 +1,6 @@
 module github.com/davars/sohop
 
-go 1.12
+go 1.15
 
 require (
 	cloud.google.com/go v0.17.0 // indirect
@@ -19,7 +19,7 @@ require (
 	github.com/stretchr/testify v1.2.0
 	github.com/tedsuo/ifrit v0.0.0-20180802180643-bea94bb476cc // indirect
 	github.com/yhat/wsutil v0.0.0-20170731153501-1d66fa95c997
-	golang.org/x/crypto v0.0.0-20180112200814-13931e22f9e7
+	golang.org/x/crypto v0.0.0-20201117144127-c1f2f97bffc9
 	golang.org/x/oauth2 v0.0.0-20180104230036-30785a2c434e
 	golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6 // indirect
 	google.golang.org/appengine v1.0.0 // indirect
