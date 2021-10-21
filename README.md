@@ -3,8 +3,8 @@
 [![report card](https://goreportcard.com/badge/github.com/davars/sohop)](https://goreportcard.com/report/github.com/davars/sohop)
 
 This program is a reverse proxy that can optionally restrict access to users authenticated with OAuth (currently
-supports authorizing members of a specified Github organization, or users whose Google account email matches a
-specified regex).  It also provides a health check endpoint that reports the reachability of the upstream services.
+supports authorizing members of a specified Github organization).  It also provides a health check endpoint that reports
+the reachability of the upstream services.
 
 I use it to expose erstwhile intranet apps to the public internet while continuing to restrict access, and without
 having to configure authentication / authorization in the intranet apps themselves.  They are installed as if they're
@@ -82,25 +82,6 @@ Usage of sohop:
       "WebSocket": "ws://10.0.0.16:8111",
       "Auth": false
     }
-  }
-}
-```
-
-
-```
-{
-  "Domain": "example.com",    
-  "Auth" : {
-    "Type": "gmail-regex",
-    "Config": {
-	  "Credentials": {"web":{"client_id":"XXXX-yyyyyy.apps.googleusercontent.com","project_id":"example","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://accounts.google.com/o/oauth2/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"zzzzZZzzZZ","redirect_uris":["https://oauth.example.com/authorized"]}},
-	  "EmailRegex":"^davars@gmail.com$"
-	}
-  },
-  "Upstreams": {
-
-...
-
   }
 }
 ```

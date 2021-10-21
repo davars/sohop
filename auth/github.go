@@ -27,7 +27,7 @@ type GithubAuth struct {
 
 	// OrgID is the ID of the org whose members are authorized. Run
 	// `curl https://api.github.com/orgs/:org` to get the id.
-	OrgID int
+	OrgID int64
 }
 
 // OAuthConfig is implemented so GithubAuth satisfies the Auther interface.
@@ -43,7 +43,8 @@ func (ga GithubAuth) OAuthConfig() *oauth2.Config {
 // Auth is implemented so GithubAuth satisfies the Auther interface.
 func (ga GithubAuth) Auth(code string) (string, error) {
 	oauthConfig := ga.OAuthConfig()
-	ctx, _ := context.WithTimeout(context.Background(), time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
 
 	tok, err := oauthConfig.Exchange(ctx, code)
 	if err != nil {
