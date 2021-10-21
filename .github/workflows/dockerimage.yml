@@ -1,11 +1,10 @@
-name: Docker image builder
+name: Test & Build
 
 on:
   push:
-    # Publish `master` as Docker `latest` image.
+    # Publish `main` as Docker `latest` image.
     branches:
-      - master
-      - seed
+      - main
 
     # Publish `v1.2.3` tags as releases.
     tags:
@@ -27,13 +26,26 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Set up Go 1.17
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.17
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Get dependencies
+        run: |
+          go mod tidy
+
+      - name: Test
+        run: go test -v ./...
 
       - name: Build image
         run: docker build . --file Dockerfile --tag $IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
 
       - name: Log in to registry
-        # This is where you will update the PAT to GITHUB_TOKEN
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Push image
