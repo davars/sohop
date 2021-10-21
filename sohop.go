@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/tls"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -48,10 +49,10 @@ type Config struct {
 	Acme *acme.Config
 
 	// Deprecated.  See https://godoc.org/github.com/davars/sohop/auth#Config.
-	Github *auth.GithubAuth
+	Github json.RawMessage
 
 	// Deprecated.  See https://godoc.org/github.com/davars/sohop/auth#Config.
-	Google *auth.GoogleAuth
+	Google json.RawMessage
 }
 
 // CookieConfig configures the session cookie store.

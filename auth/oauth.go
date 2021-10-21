@@ -24,8 +24,7 @@ type Auther interface {
 
 // A Config can be used to create a new Auther
 type Config struct {
-	// Type is the type of Auther.  Supported types are: github-org,
-	// google-regex
+	// Type is the type of Auther.  Supported types are: github-org
 	Type string
 
 	// Config configures the Auther.  The structure of this value varies
