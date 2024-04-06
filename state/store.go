@@ -10,10 +10,10 @@ import (
 
 	"github.com/davars/sohop/globals"
 	"github.com/davars/timebox"
-	"github.com/golang/protobuf/ptypes"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-//go:generate protoc state.proto --go_out=.
+//go:generate protoc --proto_path=. --go_out=. --go_opt=paths=source_relative state.proto
 
 const (
 	sessionAge           = 24 * time.Hour
@@ -74,7 +74,7 @@ func (c *cookieStore) setCookie(rw http.ResponseWriter, name, value string, maxA
 
 func (c *cookieStore) Authorize(rw http.ResponseWriter, req *http.Request, user string) error {
 	expires := globals.Clock.Now().Add(sessionAge)
-	expiresP, _ := ptypes.TimestampProto(expires) // TODO: fix before 9999-12-31
+	expiresP := timestamppb.New(expires)
 	session := &Session{User: user, Authorized: true, ExpiresAt: expiresP}
 	value, err := c.boxer.Seal(session, sessionAge)
 	if err != nil {
