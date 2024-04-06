@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package state;
 
+option go_package = "github.com/davars/sohop/state";
+
 import "google/protobuf/timestamp.proto";
 
 // TimeBox wraps byte string payload with an expiration date
