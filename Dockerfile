@@ -1,4 +1,4 @@
-FROM golang:1.22.2-alpine3.19 AS build
+FROM golang:1.26.0-alpine3.23 AS build
 
 WORKDIR /src/
 ENV CGO_ENABLED=0
@@ -8,7 +8,7 @@ RUN go mod download
 COPY . .
 RUN GOOS=linux GOARCH=amd64 go build -o /out/sohop ./cmd/sohop
 
-FROM alpine:3.19
+FROM alpine:3.23
 
 RUN apk add --no-cache libcap su-exec
 
