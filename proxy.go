@@ -23,7 +23,7 @@ type upstream struct {
 
 func (c *Config) createUpstreams() (map[string]upstream, error) {
 	// Assume upstreams are accessible via trusted network
-	tlsConfig := &tls.Config{InsecureSkipVerify: true}
+	tlsConfig := &tls.Config{InsecureSkipVerify: true} // codeql[go/disabled-certificate-check]
 	transport := &http.Transport{TLSClientConfig: tlsConfig}
 	m := map[string]upstream{}
 

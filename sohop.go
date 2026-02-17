@@ -109,7 +109,7 @@ func (s Server) Run() {
 
 	var m *autocert.Manager
 	if s.Config.Acme != nil {
-		domains := make([]string, 0, len(s.Config.Upstreams)+2)
+		domains := []string{}
 		for _, subdomain := range []string{"oauth", "health"} {
 			domains = append(domains, fmt.Sprintf("%s.%s", subdomain, s.Config.Domain))
 		}

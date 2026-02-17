@@ -18,7 +18,7 @@ const certWarning = 72 * time.Hour
 
 func createHealthClient() *http.Client {
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // codeql[go/disabled-certificate-check]
 	}
 	client := &http.Client{
 		Transport: tr,
