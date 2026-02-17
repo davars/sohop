@@ -1,6 +1,6 @@
 module github.com/davars/sohop
 
-go 1.22
+go 1.23.0
 
 require (
 	code.cloudfoundry.org/clock v1.1.0
@@ -11,7 +11,7 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/stretchr/testify v1.8.1
 	github.com/yhat/wsutil v0.0.0-20170731153501-1d66fa95c997
-	golang.org/x/crypto v0.22.0
+	golang.org/x/crypto v0.36.0
 	golang.org/x/oauth2 v0.19.0
 	google.golang.org/protobuf v1.33.0
 )
@@ -21,8 +21,8 @@ require (
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	golang.org/x/net v0.24.0 // indirect
-	golang.org/x/sys v0.19.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
