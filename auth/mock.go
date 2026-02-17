@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"fmt"
+	"errors"
 	"reflect"
 
 	"golang.org/x/oauth2"
@@ -34,7 +34,7 @@ func (ma MockAuth) OAuthConfig() *oauth2.Config {
 // Auth is implemented so MockAuth satisfies the Auther interface.
 func (ma MockAuth) Auth(_ string) (string, error) {
 	if ma.Err != "" {
-		return "", fmt.Errorf(ma.Err)
+		return "", errors.New(ma.Err)
 	}
 	return ma.User, nil
 }
