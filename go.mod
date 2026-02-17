@@ -1,6 +1,6 @@
 module github.com/davars/sohop
 
-go 1.22
+go 1.23.0
 
 require (
 	code.cloudfoundry.org/clock v1.1.0
@@ -12,7 +12,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/yhat/wsutil v0.0.0-20170731153501-1d66fa95c997
 	golang.org/x/crypto v0.22.0
-	golang.org/x/oauth2 v0.19.0
+	golang.org/x/oauth2 v0.27.0
 	google.golang.org/protobuf v1.33.0
 )
 
