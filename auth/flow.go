@@ -7,12 +7,12 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type oauthFLow struct {
+type oauthFlow struct {
 	auth  Auther
 	state state.Store
 }
 
-func (s *oauthFLow) redirectToLogin(w http.ResponseWriter, r *http.Request) bool {
+func (s *oauthFlow) redirectToLogin(w http.ResponseWriter, r *http.Request) bool {
 	if s.state.IsAuthorized(r) {
 		return false
 	}
@@ -27,7 +27,7 @@ func (s *oauthFLow) redirectToLogin(w http.ResponseWriter, r *http.Request) bool
 	return true
 }
 
-func (s *oauthFLow) authenticateCode(w http.ResponseWriter, r *http.Request) {
+func (s *oauthFlow) authenticateCode(w http.ResponseWriter, r *http.Request) {
 	redirectURL, err := s.state.RedeemState(w, r, r.URL.Query().Get("state"))
 	if checkServerError(err, w) {
 		return
