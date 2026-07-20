@@ -8,7 +8,7 @@ RUN go mod download
 COPY . .
 RUN GOOS=linux GOARCH=amd64 go build -o /out/sohop ./cmd/sohop
 
-FROM alpine:3.23
+FROM alpine:3.24
 
 RUN apk add --no-cache libcap su-exec
 
