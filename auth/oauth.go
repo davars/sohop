@@ -56,7 +56,7 @@ var (
 // are defined by the Auther (typically exchanging the OAuth2 code for an access
 // token and using the token to identify the user).
 func Handler(auth Auther, state state.Store) http.Handler {
-	flow := &oauthFLow{auth: auth, state: state}
+	flow := &oauthFlow{auth: auth, state: state}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		flow.authenticateCode(w, r)
 	})
@@ -66,7 +66,7 @@ func Handler(auth Auther, state state.Store) http.Handler {
 // authorized.  If not, it generates a redirect to the configured Auther login
 // URL.
 func Middleware(auth Auther, state state.Store) func(http.Handler) http.Handler {
-	flow := &oauthFLow{auth: auth, state: state}
+	flow := &oauthFlow{auth: auth, state: state}
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if flow.redirectToLogin(w, r) {
