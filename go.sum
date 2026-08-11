@@ -1,5 +1,5 @@
-code.cloudfoundry.org/clock v1.79.0 h1:9/gu3ovbYCROlpIShqMmTkQrQxHpTUpJk9ovxJz+n2I=
-code.cloudfoundry.org/clock v1.79.0/go.mod h1:f+X2+DeOrYJgReWyyDaFlPccMZ8j4jLulsT4Pxr6WDw=
+code.cloudfoundry.org/clock v1.82.0 h1:HEm2jYX2MB401hmQmr/wnkyJMEoUaKnKYO3JrTrOTvM=
+code.cloudfoundry.org/clock v1.82.0/go.mod h1:5VwgIDKGjhB9A9DlYEana0P77ZVnX9WdNf8zpD7MtWw=
 github.com/davars/timebox v1.1.0 h1:2VaIV/izNdIKonMY8Qxlnl7gLFhZeVhBQm/TbQ+12Kc=
 github.com/davars/timebox v1.1.0/go.mod h1:Q8Jxc6wOazMfutKdcmcyqrrfqKE5gfGNRxGINS7+pck=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
