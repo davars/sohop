@@ -3,7 +3,7 @@ module github.com/davars/sohop
 go 1.25.0
 
 require (
-	code.cloudfoundry.org/clock v1.79.0
+	code.cloudfoundry.org/clock v1.83.0
 	github.com/davars/timebox v1.1.0
 	github.com/golang/protobuf v1.5.4
 	github.com/google/go-github v17.0.0+incompatible
