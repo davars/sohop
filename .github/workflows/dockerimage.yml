@@ -22,7 +22,7 @@ jobs:
   push:
     runs-on: ubuntu-latest
     env:
-      HAVE_DOCKERHUB_CREDS: ${{ secrets.DOCKERHUB_TOKEN != '' }}
+      HAVE_DOCKERHUB_CREDS: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
     permissions:
       packages: write
       contents: read
