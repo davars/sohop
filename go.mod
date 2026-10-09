@@ -1,8 +1,6 @@
 module github.com/davars/sohop
 
-go 1.26.0
-
-toolchain go1.27.2
+go 1.27.2
 
 require (
 	code.cloudfoundry.org/clock v1.90.0
