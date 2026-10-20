@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"sync"
 	"time"
-
-	"github.com/davars/sohop/globals"
 )
 
 var healthClient = createHealthClient()
@@ -61,7 +59,7 @@ func (s Server) performCheck() {
 				healthCheck = v.URL
 			}
 
-			start := globals.Clock.Now()
+			start := time.Now()
 			resp, err := healthClient.Get(healthCheck)
 			elapsed := time.Since(start) / time.Millisecond
 
@@ -99,7 +97,7 @@ func (s Server) performCheck() {
 			}
 
 			certResponse["expires_at"] = notAfter
-			now := globals.Clock.Now()
+			now := time.Now()
 			if !notBefore.Before(now) {
 				certResponse["error"] = "not yet valid"
 				certResponse["valid_at"] = notBefore

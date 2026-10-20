@@ -3,7 +3,6 @@ module github.com/davars/sohop
 go 1.27.2
 
 require (
-	code.cloudfoundry.org/clock v1.90.0
 	github.com/davars/timebox v1.1.0
 	github.com/golang/protobuf v1.5.4
 	github.com/google/go-github v17.0.0+incompatible
@@ -17,6 +16,7 @@ require (
 )
 
 require (
+	code.cloudfoundry.org/clock v1.90.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/google/go-querystring v1.2.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect

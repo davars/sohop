@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/davars/sohop/globals"
 	"github.com/davars/timebox"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -67,13 +66,13 @@ func (c *cookieStore) setCookie(rw http.ResponseWriter, name, value string, maxA
 	if maxAge < 0 {
 		cookie.Expires = time.Unix(0, 0)
 	} else if maxAge > 0 {
-		cookie.Expires = globals.Clock.Now().Add(maxAge)
+		cookie.Expires = time.Now().Add(maxAge)
 	}
 	http.SetCookie(rw, cookie)
 }
 
 func (c *cookieStore) Authorize(rw http.ResponseWriter, req *http.Request, user string) error {
-	expires := globals.Clock.Now().Add(sessionAge)
+	expires := time.Now().Add(sessionAge)
 	expiresP := timestamppb.New(expires)
 	session := &Session{User: user, Authorized: true, ExpiresAt: expiresP}
 	value, err := c.boxer.Seal(session, sessionAge)
